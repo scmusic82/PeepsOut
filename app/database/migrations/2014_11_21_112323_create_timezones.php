@@ -16,6 +16,8 @@ class CreateTimezones extends Migration {
         {
             $table->increments('id');
             $table->string('timezone', 150);
+            $table->integer('amount');
+            $table->string('difference', 10)->default('0000');
             $table->timestamps();
         });
     }

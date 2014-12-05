@@ -15,7 +15,22 @@ class VenuesController extends \BaseController {
 				
 				$kw = trim(Utils::formPrep(Input::get('kw', '')));
 				$search_category = trim(Utils::formPrep(Input::get('category', '')));
+
+				$timestamp = Input::get('timestamp', strtotime('now'));
+				$timezone = Input::get('timezone', '-18000');
+				$lat = Input::get('lat', 0);
+				$lon = Input::get('lon', 0);
+				$low_count = 99999999999;
+				$start_count = 0;
+
 				$kw_condition = $category_condition = "";
+
+				$today_day = date('l', $timestamp);
+				$today_hour = intval(date('G', $timestamp)) * 3600;
+				$today_minutes = intval(date('i')) * 60;
+				$user_gmt_time = intval($timestamp) - intval($timezone);
+
+				$timezone_hours =  intval($timezone) / 3600;
 
 				if ($kw != '') {
 					$kw = Utils::stopWords($kw);
@@ -27,8 +42,7 @@ class VenuesController extends \BaseController {
 				}
 
 				$existing_venues = Venue::whereRaw("id > 0" . $kw_condition . $category_condition);
-				//select("SELECT * FROM venues WHERE id > 0" . $kw_condition . $category_condition . " ORDER BY name");
-				$returned_venues = [];
+				$all_venues = $returned_venues = $distances = [];
 				if ($existing_venues->count() > 0) {
 					$token = Token::where('auth_token', '=', $auth_token)->first();
 					$user = $token->user;
@@ -37,6 +51,20 @@ class VenuesController extends \BaseController {
 
 					$venues = $existing_venues->get();
 					foreach($venues as $venue) {
+
+						list($is_streaming, $next_stream_in) = Venue::checkStream($venue->feed_schedule, $venue->feed_timezone, $today_day, $user_gmt_time);
+
+						$venue_lat = $venue->location_lat;
+						$venue_lon = $venue->location_lon;
+						$venue_key = $start_count;
+						if ($venue_lat != '' && $venue_lon != '') {
+							$distance = Venue::getDistance($lat, $lon, $venue_lat, $venue_lon);
+						} else {
+							$venue_key = $low_count - $start_count;
+							$distance = $low_count - $start_count;
+						}
+						$distances[$venue_key] = $distance;
+
 						$venue_categories = [];
 						$vc = (array)json_decode($venue->category_id, true);
 						foreach($vc as $venue_category) {
@@ -48,22 +76,36 @@ class VenuesController extends \BaseController {
 								];
 							}
 						}
-						$returned_venues[] = [
+						$all_venues[$venue_key] = [
 							'venue_id' 		=> $venue->venue_id,
 							'name' 			=> $venue->name,
 							'categories'	=> $venue_categories,
 							'feed' 			=> $venue->feed, 
 							'favourite' 	=> (isset($user_favourites[$venue->venue_id]) ? 1 : 0), 
+							'streaming'		=> $is_streaming,
+							'stream_in'		=> $next_stream_in,
 							'location' => [
 								'lat' 		=> $venue->location_lat, 
-								'lon' 		=> $venue->location_lon
+								'lon' 		=> $venue->location_lon,
+								'distance'	=> number_format($distance, 2),
 							]
 						];
 						$venue->impressions++;
 						$venue->update();
+						$start_count++;
 					}
 				}
-				return Response::json(['status' => 1, 'total_results' => count($returned_venues), 'venues' => $returned_venues], 200);
+				@asort($distances);
+				foreach($distances as $key => $distance) {
+					$returned_venues[] = $all_venues[$key];
+				}
+				$response = [
+					'status' => 1,
+					'total_results' => count($returned_venues),
+					'timezone_hours' => $timezone_hours,
+					'venues' => $returned_venues
+				];
+				return Response::json($response, 200);
 			}
 		}
 		return Response::json(['status' => 2, 'message' => Lang::get('messages.auth_error')], 401);
@@ -99,26 +141,67 @@ class VenuesController extends \BaseController {
 				$feed_schedule = [];
 				$schedule = (array)json_decode($venue->feed_schedule, true);
 				foreach($schedule as $k => $v) {
-					$hrs = explode('-', $v['hours']);
-					if (!isset($hrs[0])) { $hrs[0] = ''; }
-					if (!isset($hrs[1])) { $hrs[1] = ''; }
-					if (isset($v['days']) && trim($v['days']) != '') {
-						$feed_schedule[] = ['day' => $v['days'], 'hours' => [trim($hrs[0]), trim($hrs[1])]];
+					if (isset($v['days']) && count($v['days']) > 0) {
+						$feed_schedule[] = ['days' => $v['days'], 'hours' => $v['hours']];
 					}
 				}
 
-				$venue_specials = [];
+				$venue_specials = $venue_events = [];
 				$specials = (array)json_decode($venue->specials, true);
+				$today = strtotime('now');
 				foreach($specials as $k => $v) {
-					if (isset($v['day']) && isset($v['name']) && isset($v['description']) && isset($v['timing']) && isset($v['price'])) {
-						$venue_specials[] = [
-							"day" 			=> trim($v['day']),
-							"name" 			=> trim($v['name']),
-							"description" 	=> trim($v['description']),
-							"timing" 		=> trim($v['timing']),
-							"price" 		=> number_format(trim($v['price']), 2)
-						];
+					$special = $event = [];
+					if (isset($v['description'])) {
+						$is_event = $v['event'] == '1' ? true : false;
+						if (trim($v['from']) == '' && trim($v['until']) == '') {
+							// No time limit
+							if ($is_event) {
+								// It's an event
+								$event['description'] = $v['description'];
+								$event['day'] = $v['day'];
+							} else {
+								// It's a special
+								$special['description'] = $v['description'];
+								$special['day'] = $v['day'];
+							}
+						} else if (trim($v['from']) != '' && trim($v['until']) != '') {
+							// Timed
+							if ($today > strtotime($v['from'] . ' 00:00:00') && $today < strtotime($v['until'] . ' 23:59:59')) {
+								// Is happening
+								if ($is_event) {
+									// It's an event
+									$event['description'] = $v['description'];
+									$event['day'] = $v['day'];
+									$event['starts'] = $v['from'];
+									$event['ends'] = $v['until'];
+								} else {
+									// It's a special
+									$special['description'] = $v['description'];
+									$special['day'] = $v['day'];
+									$special['starts'] = $v['from'];
+									$special['ends'] = $v['until'];
+								}
+							}
+						} else if (trim($v['from']) != '' && trim($v['forever']) == '1') {
+							// Never finishes
+							if ($today > strtotime($v['from'] . ' 00:00:00')) {
+								// Is happening
+								if ($is_event) {
+									// It's an event
+									$event['description'] = $v['description'];
+									$event['day'] = $v['day'];
+									$event['starts'] = $v['from'];
+								} else {
+									// It's a special
+									$special['description'] = $v['description'];
+									$special['day'] = $v['day'];
+									$special['starts'] = $v['from'];
+								}
+							}
+						}
 					}
+					if (count($special) > 0) { $venue_specials[$v['group']][] = $special; }
+					if (count($event) > 0) { $venue_events[$v['group']][] = $event; }
 				}
 
 				$venue_images = [];
@@ -144,6 +227,7 @@ class VenuesController extends \BaseController {
 						"phone_numbers" => array_values((array)json_decode($venue->phone_numbers, true))
 					],
 					"specials" 			=> $venue_specials,
+					"events" 			=> $venue_events,
 					"images" 			=> $venue_images
 				];
 				return Response::json($response, 200);
@@ -184,7 +268,17 @@ class VenuesController extends \BaseController {
 				$token = Token::where('auth_token', '=', $auth_token)->first();
 				$user = $token->user;
 
-				$returned_venues = [];
+				$returned_venues = $all_venues = $distances = [];
+
+				$timestamp = Input::get('timestamp', strtotime('now'));
+				$timezone = Input::get('timezone', '-18000');
+				$lat = Input::get('lat', 0);
+				$lon = Input::get('lon', 0);
+				$low_count = 99999999999;
+				$start_count = 0;
+
+				$is_streaming = 0;
+				$next_stream_in = '';
 
 				$existing_venues = Venue::where('specials', '!=', '')->where('specials', '!=', '[]');
 				if ($existing_venues->count() > 0) {
@@ -194,30 +288,59 @@ class VenuesController extends \BaseController {
 					$found_venues = $existing_venues->get();
 					
 					foreach($found_venues as $venue) {
-						$venue_categories = [];
-						$vc = (array)json_decode($venue->category_id, true);
-						foreach($vc as $venue_category) {
-							if (isset($categories[$venue_category])) {
-								$venue_categories[] = [
-									'name' => $categories[$venue_category]['name'],
-									'id' => $venue_category,
-									'stub' => $categories[$venue_category]['stub']
-								];
+						$specials = json_decode($venue->specials, true);
+						if (isset($specials['event']) && $specials['event'] == '0') {
+							
+
+							$venue_lat = $venue->location_lat;
+							$venue_lon = $venue->location_lon;
+							$venue_key = $start_count;
+							if ($venue_lat != '' && $venue_lon != '') {
+								$distance = Venue::getDistance($lat, $lon, $venue_lat, $venue_lon);
+							} else {
+								$venue_key = $low_count - $start_count;
+								$distance = $low_count - $start_count;
 							}
+							$distances[$venue_key] = $distance;
+
+
+							$venue_categories = [];
+							$vc = (array)json_decode($venue->category_id, true);
+							foreach($vc as $venue_category) {
+								if (isset($categories[$venue_category])) {
+									$venue_categories[] = [
+										'name' => $categories[$venue_category]['name'],
+										'id' => $venue_category,
+										'stub' => $categories[$venue_category]['stub']
+									];
+								}
+							}
+							$all_venues[$venue_key] = [
+								'venue_id' 		=> $venue->venue_id,
+								'name' 			=> $venue->name,
+								'categories'	=> $venue_categories,
+								'feed' 			=> $venue->feed, 
+								'favourite' 	=> (isset($user_favourites[$venue->venue_id]) ? 1 : 0), 
+								'streaming'		=> $is_streaming,
+								'stream_in'		=> $next_stream_in,
+								'location' => [
+									'lat' 		=> $venue->location_lat, 
+									'lon' 		=> $venue->location_lon,
+									'distance'	=> number_format($distance, 2)
+								]
+							];
+
+							$venue->impressions++;
+							$venue->update();
+							$start_count++;
 						}
-						$returned_venues[] = [
-							'venue_id' 		=> $venue->venue_id,
-							'name' 			=> $venue->name,
-							'categories'	=> $venue_categories,
-							'feed' 			=> $venue->feed, 
-							'favourite' 	=> (isset($user_favourites[$venue->venue_id]) ? 1 : 0), 
-							'location' => [
-								'lat' 		=> $venue->location_lat, 
-								'lon' 		=> $venue->location_lon
-							]
-						];
 					}
 				}
+				@asort($distances);
+				foreach($distances as $key => $distance) {
+					$returned_venues[] = $all_venues[$key];
+				}
+
 				return Response::json(['status' => 1, 'total_results' => count($returned_venues), 'venues' => $returned_venues], 200);
 			}
 		}
@@ -232,8 +355,14 @@ class VenuesController extends \BaseController {
 				$token = Token::where('auth_token', '=', $auth_token)->first();
 				$user = $token->user;
 
-				$returned_venues = [];
-				$all_favourites = [];
+				$returned_venues = $all_favourites = $all_venues = $distances = [];
+
+				$timestamp = Input::get('timestamp', strtotime('now'));
+				$timezone = Input::get('timezone', '-18000');
+				$lat = Input::get('lat', 0);
+				$lon = Input::get('lon', 0);
+				$low_count = 99999999999;
+				$start_count = 0;
 
 				$existing_favourites = Favourite::where('user_id', '=', $user->user_id);
 				if ($existing_favourites->count() > 0) {
@@ -244,13 +373,27 @@ class VenuesController extends \BaseController {
 					$all_favourites = array_unique($all_favourites);
 				}
 
+				$is_streaming = 0;
+				$next_stream_in = '';
+
 				if (count($all_favourites) > 0) {
 					$existing_venues = Venue::whereIn('venue_id', $all_favourites)->orderBy('name');
-
 					if ($existing_venues->count() > 0) {
 						$categories = Category::getCategories();
 						$found_venues = $existing_venues->get();
 						foreach($found_venues as $venue) {
+
+							$venue_lat = $venue->location_lat;
+							$venue_lon = $venue->location_lon;
+							$venue_key = $start_count;
+							if ($venue_lat != '' && $venue_lon != '') {
+								$distance = Venue::getDistance($lat, $lon, $venue_lat, $venue_lon);
+							} else {
+								$venue_key = $low_count - $start_count;
+								$distance = $low_count - $start_count;
+							}
+							$distances[$venue_key] = $distance;
+
 							$venue_categories = [];
 							$vc = (array)json_decode($venue->category_id, true);
 							foreach($vc as $venue_category) {
@@ -262,20 +405,29 @@ class VenuesController extends \BaseController {
 									];
 								}
 							}
-							$returned_venues[] = [
+							$all_venues[$venue_key] = [
 								'venue_id' 		=> $venue->venue_id,
 								'name' 			=> $venue->name,
 								'categories'	=> $venue_categories,
 								'feed' 			=> $venue->feed, 
+								'distance'		=> $venue->distance,
+								'streaming'		=> $is_streaming,
+								'stream_in'		=> $next_stream_in,
 								'location' => [
 									'lat' 		=> $venue->location_lat, 
-									'lon' 		=> $venue->location_lon
+									'lon' 		=> $venue->location_lon,
+									'distance'	=> number_format($distance, 2)
 								]
 							];
 							$venue->impressions++;
 							$venue->update();
+							$start_count++;
 						}
 					}
+				}
+				@asort($distances);
+				foreach($distances as $key => $distance) {
+					$returned_venues[] = $all_venues[$key];
 				}
 				return Response::json(['status' => 1, 'total_results' => count($returned_venues), 'venues' => $returned_venues], 200);
 			}
@@ -283,42 +435,4 @@ class VenuesController extends \BaseController {
 		return Response::json(['status' => 2, 'message' => Lang::get('messages.auth_error')], 401);
 	}
 
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+} 
