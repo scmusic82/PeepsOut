@@ -13,7 +13,9 @@ class CategoriesController extends \BaseController {
 			$auth_token = Request::header('Authorization');
 			if (Token::checkToken($auth_token)) {
 				$existing = Category::where('id', '>', 0)->orderBy('name');
-				$categories = [];
+				$categories = [
+					['category_id' => '', 'name' => 'All Venues', 'stub' => '']
+				];
 				if ($existing->count() > 0) {
 					$result = $existing->get();
 					foreach($result as $category) {

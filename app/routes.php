@@ -51,4 +51,7 @@ Route::group(['prefix' => 'v1'], function() {
 
     // FAQs
     Route::get('faqs',                  'FaqController@index');
+
+    // Cities
+    Route::get('cities',                'CitiesController@index');
 });

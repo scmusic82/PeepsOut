@@ -31,5 +31,10 @@ class City extends Eloquent {
 
 		return $code;
 	}
+
+	public function neighbourhoods()
+    {
+        return $this->hasMany('Neighbourhood', 'parent', 'id');
+    }
 	
 }
