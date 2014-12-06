@@ -26,11 +26,7 @@ class VenuesController extends \BaseController {
 				$kw_condition = $category_condition = "";
 
 				$today_day = date('l', $timestamp);
-				$today_hour = intval(date('G', $timestamp)) * 3600;
-				$today_minutes = intval(date('i')) * 60;
 				$user_gmt_time = intval($timestamp) - intval($timezone);
-
-				$timezone_hours =  intval($timezone) / 3600;
 
 				if ($kw != '') {
 					$kw = Utils::stopWords($kw);
@@ -102,7 +98,6 @@ class VenuesController extends \BaseController {
 				$response = [
 					'status' => 1,
 					'total_results' => count($returned_venues),
-					'timezone_hours' => $timezone_hours,
 					'venues' => $returned_venues
 				];
 				return Response::json($response, 200);
@@ -277,8 +272,8 @@ class VenuesController extends \BaseController {
 				$low_count = 99999999999;
 				$start_count = 0;
 
-				$is_streaming = 0;
-				$next_stream_in = '';
+				$today_day = date('l', $timestamp);
+				$user_gmt_time = intval($timestamp) - intval($timezone);
 
 				$existing_venues = Venue::where('specials', '!=', '')->where('specials', '!=', '[]');
 				if ($existing_venues->count() > 0) {
@@ -291,6 +286,7 @@ class VenuesController extends \BaseController {
 						$specials = json_decode($venue->specials, true);
 						if (isset($specials['event']) && $specials['event'] == '0') {
 							
+							list($is_streaming, $next_stream_in) = Venue::checkStream($venue->feed_schedule, $venue->feed_timezone, $today_day, $user_gmt_time);
 
 							$venue_lat = $venue->location_lat;
 							$venue_lon = $venue->location_lon;
@@ -364,6 +360,9 @@ class VenuesController extends \BaseController {
 				$low_count = 99999999999;
 				$start_count = 0;
 
+				$today_day = date('l', $timestamp);
+				$user_gmt_time = intval($timestamp) - intval($timezone);
+
 				$existing_favourites = Favourite::where('user_id', '=', $user->user_id);
 				if ($existing_favourites->count() > 0) {
 					$found_favourites = $existing_favourites->get();
@@ -373,15 +372,14 @@ class VenuesController extends \BaseController {
 					$all_favourites = array_unique($all_favourites);
 				}
 
-				$is_streaming = 0;
-				$next_stream_in = '';
-
 				if (count($all_favourites) > 0) {
 					$existing_venues = Venue::whereIn('venue_id', $all_favourites)->orderBy('name');
 					if ($existing_venues->count() > 0) {
 						$categories = Category::getCategories();
 						$found_venues = $existing_venues->get();
 						foreach($found_venues as $venue) {
+
+							list($is_streaming, $next_stream_in) = Venue::checkStream($venue->feed_schedule, $venue->feed_timezone, $today_day, $user_gmt_time);
 
 							$venue_lat = $venue->location_lat;
 							$venue_lon = $venue->location_lon;
