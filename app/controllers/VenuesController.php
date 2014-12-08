@@ -83,7 +83,7 @@ class VenuesController extends \BaseController {
 							'location' => [
 								'lat' 		=> $venue->location_lat, 
 								'lon' 		=> $venue->location_lon,
-								'distance'	=> number_format($distance, 2),
+								'distance'	=> number_format($distance, 2, '.', '')
 							]
 						];
 						$venue->impressions++;
@@ -114,11 +114,20 @@ class VenuesController extends \BaseController {
 				$token = Token::where('auth_token', '=', $auth_token)->first();
 				$user = $token->user;
 
+				$lat = Input::get('lat', 0);
+				$lon = Input::get('lon', 0);
+				$timestamp = Input::get('timestamp', strtotime('now'));
+				$timezone = Input::get('timezone', '-18000');
+				$today_day = date('l', $timestamp);
+				$user_gmt_time = intval($timestamp) - intval($timezone);
+
 				$existing_venue = Venue::where('venue_id', '=', $venue_id);
 				if ($existing_venue->count() == 0) {
 					return Response::json(['status' => 0, 'message' => Lang::get('messages.venue_not_found')], 401);
 				}
 				$venue = $existing_venue->first();
+
+				list($is_streaming, $next_stream_in) = Venue::checkStream($venue->feed_schedule, $venue->feed_timezone, $today_day, $user_gmt_time);
 
 				$categories = Category::getCategories();
 				$venue_categories = [];
@@ -199,6 +208,12 @@ class VenuesController extends \BaseController {
 					if (count($event) > 0) { $venue_events[$v['group']][] = $event; }
 				}
 
+				if ($venue->location_lat != '' && $venue->location_lon != '') {
+					$distance = Venue::getDistance($lat, $lon, $venue->location_lat, $venue->location_lon);
+				} else {
+					$distance = 99999999999;
+				}
+
 				$venue_images = [];
 				$images = (array)json_decode($venue->images, true);
 				foreach ($images as $image) {
@@ -213,7 +228,8 @@ class VenuesController extends \BaseController {
 					"feed_schedule" 	=> $feed_schedule,
 					"location" 			=> [
 						"lat" 			=> $venue->location_lat,
-						"lon" 			=> $venue->location_lon
+						"lon" 			=> $venue->location_lon,
+						"distance"		=> number_format($distance, 2, '.', '')
 					],
 					"details" 			=> [
 						"description" 	=> $venue->description,
@@ -223,7 +239,9 @@ class VenuesController extends \BaseController {
 					],
 					"specials" 			=> $venue_specials,
 					"events" 			=> $venue_events,
-					"images" 			=> $venue_images
+					"images" 			=> $venue_images,
+					"streaming"			=> $is_streaming,
+					"stream_in"			=> $next_stream_in
 				];
 				return Response::json($response, 200);
 			}
@@ -322,7 +340,7 @@ class VenuesController extends \BaseController {
 								'location' => [
 									'lat' 		=> $venue->location_lat, 
 									'lon' 		=> $venue->location_lon,
-									'distance'	=> number_format($distance, 2)
+									'distance'	=> number_format($distance, 2, '.', '')
 								]
 							];
 
@@ -414,7 +432,7 @@ class VenuesController extends \BaseController {
 								'location' => [
 									'lat' 		=> $venue->location_lat, 
 									'lon' 		=> $venue->location_lon,
-									'distance'	=> number_format($distance, 2)
+									'distance'	=> number_format($distance, 2, '.', '')
 								]
 							];
 							$venue->impressions++;

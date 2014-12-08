@@ -58,23 +58,102 @@ class Venue extends Eloquent {
 			$venue_timezone = $tz_hours * 3600;
 		}
 
+		$sched_frames = [];
+		$sched_frames[$today_day]['b'] = $user_gmt_time;
 		foreach($schedule as $sched_key => $sched_val) {
-			if (in_array($today_day, $sched_val['days']) && isset($sched_val['hours'][0]) && isset($sched_val['hours'][1])) {
-				$venue_gmt_start = intval(strtotime(date('Y-m-d ' . $sched_val['hours'][0] . ':00'))) - intval($venue_timezone);
-				$venue_gmt_end = intval(strtotime(date('Y-m-d ' . $sched_val['hours'][1] . ':00'))) - intval($venue_timezone);
-				if ($user_gmt_time > $venue_gmt_start && $user_gmt_time < $venue_gmt_end) {
-					$is_streaming = 1;
-					$next_stream_in = 'now';
+			foreach($sched_val['days'] as $day_key => $day_val) {
+				foreach($sched_val['hours'] as $hour_key => $hour_val) {
+					if ($hour_val == '00:00') { $hour_val = '23:59'; }
+					if ($hour_key == 0) {
+						$sched_frames[$day_val]['a'] = intval(strtotime(date('Y-m-d ' . $hour_val . ':00'))) - intval($venue_timezone);
+					}
+					if ($hour_key == 1) {
+						$sched_frames[$day_val]['c'] = intval(strtotime(date('Y-m-d ' . $hour_val . ':00'))) - intval($venue_timezone);
+					}
 				}
+				@asort($sched_frames[$day_val]);
 			}
-			if (in_array($today_day, $sched_val['days']) && isset($sched_val['hours'][0]) && isset($sched_val['hours'][1]) && $is_streaming == 0) {
-				$venue_gmt_start = intval(strtotime(date('Y-m-d ' . $sched_val['hours'][0] . ':00'))) - intval($venue_timezone);
-				if ($user_gmt_time < $venue_gmt_start) {
-					$gmt_difference_sec = $venue_gmt_start - $user_gmt_time;
-					if ($gmt_difference_sec > 3600) {
-						$next_stream_in = ceil($gmt_difference_sec / 3600).'hrs';
-					} else if ($gmt_difference_sec > 60) {
-						$next_stream_in = ceil($gmt_difference_sec / 60).'min';
+		}
+		
+		$all_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+		foreach ($sched_frames as $day => $hours) {
+			if ($next_stream_in == '') {
+				if (isset($hours['a']) && isset($hours['b']) && isset($hours['c'])) {
+					if ($hours['b'] < $hours['a']) {
+						// Streams today
+						$is_streaming = 0;
+						$gmt_difference_sec = $hours['a'] - $hours['b'];
+						if ($gmt_difference_sec > 86400) {
+							foreach($all_days as $k => $d) {
+								if ($d == $day) {
+									if ($k == count($all_days)-1) {
+										$next_stream_in = $all_days[0];
+									} else {
+										$i = $k+1;
+										while(!isset($sched_frames[$all_days[$i]])) {
+											$i++;
+											if ($i == count($all_days)) { $i = 0; }
+										}
+										$next_stream_in = $all_days[$i];
+										if ($i == $k+1) {
+											$next_stream_in = 'Tomorrow';
+										}
+									}
+								}
+							}
+						} else if ($gmt_difference_sec > 3600) {
+			 				$next_stream_in = ceil($gmt_difference_sec / 3600).'hrs';
+			 			} else if ($gmt_difference_sec > 60) {
+			 				$next_stream_in = ceil($gmt_difference_sec / 60).'min';
+			 			}
+					} else if ($hours['b'] > $hours['a'] && $hours['b'] < $hours['c']) {
+						// Streams NOW
+						$is_streaming = 1;
+						$next_stream_in = 'LIVE';
+					} else if ($hours['b'] > $hours['c']) {
+						// Streams tomorrow or any other day of the week...
+						$is_streaming = 0;
+						foreach($all_days as $k => $d) {
+							if ($d == $day) {
+								if ($k == count($all_days)-1) {
+									$next_day = $all_days[0];
+								} else {
+									$i = $k+1;
+									while(!isset($sched_frames[$all_days[$i]])) {
+										$i++;
+										if ($i == count($all_days)) { $i = 0; }
+									}
+									$next_day = $all_days[$i];
+								}
+							}
+						}
+						$gmt_difference_sec = $sched_frames[$next_day]['a'] - $hours['b'];
+						if ($gmt_difference_sec > 86400) {
+							foreach($all_days as $k => $d) {
+								if ($d == $day) {
+									if ($k == count($all_days)-1) {
+										$next_stream_in = $all_days[0];
+										if ($day == 'Sunday' && $next_stream_in == 'Monday') {
+											$next_stream_in = 'Tomorrow';
+										}
+									} else {
+										$i = $k+1;
+										while(!isset($sched_frames[$all_days[$i]])) {
+											$i++;
+											if ($i == count($all_days)) { $i = 0; }
+										}
+										$next_stream_in = $all_days[$i];
+										if ($i == $k+1) {
+											$next_stream_in = 'Tomorrow';
+										}
+									}
+								}
+							}
+						} else if ($gmt_difference_sec > 3600) {
+			 				$next_stream_in = ceil($gmt_difference_sec / 3600).'hrs';
+			 			} else if ($gmt_difference_sec > 60) {
+			 				$next_stream_in = ceil($gmt_difference_sec / 60).'min';
+			 			}
 					}
 				}
 			}
