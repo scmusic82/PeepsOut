@@ -1,5 +1,5 @@
 <?php
-class Category extends Eloquent {
+class Category extends \BaseModel {
 
 	/**
 	 * The database table used by the model.
@@ -7,30 +7,6 @@ class Category extends Eloquent {
 	 * @var string
 	 */
 	protected $table = 'categories';
-
-    public static function generateCode($size = 8, $prefix = 'C', $suffix = '')
-	{
-		$code = '';
-		$seed = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-		srand(time());
-		shuffle($seed);
-		for($a = 1; $a <= $size; $a++) {
-			$char = array_shift($seed);
-			$code .= $char;
-			$seed[] = $char;
-			shuffle($seed);
-		}
-
-		$code = $prefix . $code . $suffix;
-
-		$duplicates = Category::where('category_id', '=', $code);
-		while($duplicates->count() > 0) {
-			$code = self::generateCode($size, $suffix);
-			$duplicates = Category::where('category_id', '=', $code);
-		}
-
-		return $code;
-	}
 
 	public static function getCategories()
 	{

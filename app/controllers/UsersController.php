@@ -3,17 +3,6 @@
 class UsersController extends \BaseController {
 
 	/**
-	 * Display a listing of the resource.
-	 *
-	 * @return Response
-	 */
-	public function index()
-	{
-		//
-	}
-
-
-	/**
 	 * Show the form for creating a new resource.
 	 *
 	 * @return Response
@@ -27,17 +16,6 @@ class UsersController extends \BaseController {
 			
 		}
 		return Response::json(['status' => 2, 'message' => Lang::get('messages.auth_error')], 401);
-	}
-
-
-	/**
-	 * Store a newly created resource in storage.
-	 *
-	 * @return Response
-	 */
-	public function store()
-	{
-		//
 	}
 
 
@@ -62,19 +40,7 @@ class UsersController extends \BaseController {
 		}
 		return Response::json(['status' => 2, 'message' => Lang::get('messages.auth_error')], 401);
 	}
-
-
-	/**
-	 * Show the form for editing the specified resource.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function edit($id)
-	{
-		//
-	}
-
+	
 
 	/**
 	 * Update the specified resource in storage.

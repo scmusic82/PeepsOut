@@ -8,30 +8,6 @@ class Venue extends Eloquent {
 	 */
 	protected $table = 'venues';
 
-    public static function generateCode($size = 8, $prefix = 'V', $suffix = '')
-	{
-		$code = '';
-		$seed = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-		srand(time());
-		shuffle($seed);
-		for($a = 1; $a <= $size; $a++) {
-			$char = array_shift($seed);
-			$code .= $char;
-			$seed[] = $char;
-			shuffle($seed);
-		}
-
-		$code = $prefix . $code . $suffix;
-
-		$duplicates = Venue::where('venue_id', '=', $code);
-		while($duplicates->count() > 0) {
-			$code = self::generateCode($size, $suffix);
-			$duplicates = Venue::where('venue_id', '=', $code);
-		}
-
-		return $code;
-	}
-
 	public static function getDistance($lat1, $lon1, $lat2, $lon2)
 	{
 		$earth_radius = 3960;
@@ -102,9 +78,9 @@ class Venue extends Eloquent {
 								}
 							}
 						} else if ($gmt_difference_sec > 3600) {
-			 				$next_stream_in = ceil($gmt_difference_sec / 3600).'hrs';
+			 				$next_stream_in = ceil($gmt_difference_sec / 3600).' hrs';
 			 			} else if ($gmt_difference_sec > 60) {
-			 				$next_stream_in = ceil($gmt_difference_sec / 60).'min';
+			 				$next_stream_in = ceil($gmt_difference_sec / 60).' min';
 			 			}
 					} else if ($hours['b'] > $hours['a'] && $hours['b'] < $hours['c']) {
 						// Streams NOW
@@ -150,9 +126,9 @@ class Venue extends Eloquent {
 								}
 							}
 						} else if ($gmt_difference_sec > 3600) {
-			 				$next_stream_in = ceil($gmt_difference_sec / 3600).'hrs';
+			 				$next_stream_in = ceil($gmt_difference_sec / 3600).' hrs';
 			 			} else if ($gmt_difference_sec > 60) {
-			 				$next_stream_in = ceil($gmt_difference_sec / 60).'min';
+			 				$next_stream_in = ceil($gmt_difference_sec / 60).' min';
 			 			}
 					}
 				}

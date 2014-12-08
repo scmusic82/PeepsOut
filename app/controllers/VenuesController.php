@@ -451,4 +451,31 @@ class VenuesController extends \BaseController {
 		return Response::json(['status' => 2, 'message' => Lang::get('messages.auth_error')], 401);
 	}
 
+	public function showSuggestions()
+	{
+		if (Request::header('Authorization')) {
+			$auth_token = Request::header('Authorization');
+			if (Token::checkToken($auth_token)) {
+				$token = Token::where('auth_token', '=', $auth_token)->first();
+				$user = $token->user;
+
+				$kw = Input::get('kw', '');
+				$suggestions = [];
+
+				if ($kw != '') {
+					$kw = Utils::stopWords(Utils::purify($kw));
+					$venues = Venue::where('search_field', 'like', '%' . $kw . '%');
+					if ($venues->count() > 0) {
+						foreach($venues->get() as $venue) {
+							$suggestions[] = $venue->name;
+						}
+					}
+				}
+				$suggestions = array_unique($suggestions);
+				@asort($suggestions);
+				return Response::json(['status' => 1, 'suggestions' => $suggestions], 200);
+			}
+		}
+		return Response::json(['status' => 2, 'message' => Lang::get('messages.auth_error')], 401);
+	}
 } 

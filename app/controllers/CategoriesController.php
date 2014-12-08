@@ -34,4 +34,9 @@ class CategoriesController extends \BaseController {
 		return Response::json(['status' => 2, 'message' => Lang::get('messages.auth_error')], 401);
 	}
 
+	
+	public static function testout()
+	{
+		return Utils::testdb();
+	}
 }

@@ -1,20 +1,50 @@
 <?php namespace RB\Helpers;
 
+use \Illuminate\Support\Facades\DB;
+
 class Utils {
 
+    public static function generateCode($opts = [])
+    {
+        $code = '';
+        if (!isset($opts['seed'])) { $opts['seed'] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']; }
+        if (!isset($opts['size'])) { $opts['size'] = 8; }
+
+        srand(time());
+        shuffle($opts['seed']);
+        for($a = 1; $a <= $opts['size']; $a++) {
+            $char = array_shift($opts['seed']);
+            $code .= $char;
+            $opts['seed'][] = $char;
+            shuffle($opts['seed']);
+        }
+
+        $code = (isset($opts['prefix']) ? $opts['prefix'] : '') . $code . (isset($opts['suffix']) ? $opts['suffix'] : '');
+
+        if (isset($opts['table']) && $opts['field']) {
+            $duplicates = DB::table($opts['table'])->where($opts['field'], $code)->count();
+            while($duplicates > 0) {
+                $code = self::generateCode($opts);
+                $duplicates = DB::table($opts['table'])->where($opts['field'], $code)->count();
+            }
+        }
+
+        return $code;
+    }
+
     public static function purify($str = '', $replacer = '_') {
-    	if ($str == '' || is_array($str)) { return ''; }
-		$pr1 = array('-','`','´','/','&quot;','&#039;','#039;','#39;',',',' ','?','.',"'",'&amp;','&','(',')','[',']','{','}','\\','<','>',':',';','"','|','!','@','#','$','%','^','*','+','®','©','™','____','___','__');
-		$pr2 = array('_','' ,'' ,'_','_'     ,''      ,''     ,''    ,'_','_','_','_','' , '_'   ,'_','_','_','_','_','_','_','_' ,'_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_'   ,'_'  ,'_');
-		return str_replace('_', $replacer, trim(str_replace($pr1, $pr2, trim(stripslashes(strip_tags(strtolower($str))))), '_'));
+        if ($str == '' || is_array($str)) { return ''; }
+        $pr1 = array('-','`','´','/','&quot;','&#039;','#039;','#39;',',',' ','?','.',"'",'&amp;','&','(',')','[',']','{','}','\\','<','>',':',';','"','|','!','@','#','$','%','^','*','+','®','©','™','____','___','__');
+        $pr2 = array('_','' ,'' ,'_','_'     ,''      ,''     ,''    ,'_','_','_','_','' , '_'   ,'_','_','_','_','_','_','_','_' ,'_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_'   ,'_'  ,'_');
+        return str_replace('_', $replacer, trim(str_replace($pr1, $pr2, trim(stripslashes(strip_tags(strtolower($str))))), '_'));
     }
 
     public static function packData($payload = '') {
-		if ($payload == '') { return; }
-		return base64_encode(pack("a*", $payload));
-	}
+        if ($payload == '') { return; }
+        return base64_encode(pack("a*", $payload));
+    }
 
-	public static function unpackData($data) {
+    public static function unpackData($data) {
         if ($data == '') { return; }
         $u = unpack("a*",base64_decode($data));
         if (!isset($u[1])) { return; }
@@ -39,17 +69,17 @@ class Utils {
     }
 
     public static function formPrep($str = '') {
-		if ($str=='') { return ''; }
-		$temp = '__TEMP_AMPERSANDS__';
-		$str = str_replace("'","&#039;", $str);
-		$str = str_replace('"','&quot;', $str);
-		$str = preg_replace("/&#(\d+);/", "$temp\\1;", $str);
-		$str = preg_replace("/&(\w+);/",  "$temp\\1;", $str);
-		$str = @htmlspecialchars($str,ENT_NOQUOTES);
-		$str = preg_replace("/$temp(\d+);/","&#\\1;",$str);
-		$str = preg_replace("/$temp(\w+);/","&\\1;",$str);
-		return @stripslashes($str);
-	}
+        if ($str=='') { return ''; }
+        $temp = '__TEMP_AMPERSANDS__';
+        $str = str_replace("'","&#039;", $str);
+        $str = str_replace('"','&quot;', $str);
+        $str = preg_replace("/&#(\d+);/", "$temp\\1;", $str);
+        $str = preg_replace("/&(\w+);/",  "$temp\\1;", $str);
+        $str = @htmlspecialchars($str,ENT_NOQUOTES);
+        $str = preg_replace("/$temp(\d+);/","&#\\1;",$str);
+        $str = preg_replace("/$temp(\w+);/","&\\1;",$str);
+        return @stripslashes($str);
+    }
 
     public static function restoreTags($str = '') {
         $search = array('&lt;','&gt;','&quot;');

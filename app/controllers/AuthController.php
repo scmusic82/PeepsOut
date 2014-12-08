@@ -25,7 +25,7 @@ class AuthController extends BaseController {
 					$token = Token::generateToken($device_id);
 					Token::saveToken($token, $device_id);
 
-					$user_id = User::generateCode();
+					$user_id = Utils::generateCode(['table' => 'users', 'field' => 'user_id', 'prefix' => 'U']);
 					$user->device_id = $device_id;
 					$user->user_id = $user_id;
 					$user->save();

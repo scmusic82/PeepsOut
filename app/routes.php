@@ -38,13 +38,16 @@ Route::group(['prefix' => 'v1'], function() {
     
     // Categories
     Route::get('categories',            'CategoriesController@index');
+    Route::get('test',                  'CategoriesController@testout');
     
     // Venues
     Route::get('venues',                'VenuesController@index');
     Route::get('venues/specials',       'VenuesController@listSpecials');
     Route::get('venues/favourites',     'VenuesController@listFavourites');
     Route::put('venues/{venue_id}/fav', 'VenuesController@markFavourite');
+    Route::get('venues/suggestions',    'VenuesController@showSuggestions');
     Route::get('venues/{venue_id}',     'VenuesController@show');
+
 
     // Users
     Route::get('users/{user_id}',       'UsersController@show');
