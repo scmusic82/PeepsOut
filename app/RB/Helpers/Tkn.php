@@ -1,21 +1,21 @@
 <?php namespace RB\Helpers;
 
-use Illuminate\Support\Facades\DB,
-    Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Request;
 
-class Token {
+class Tkn {
 
     // The database table containing all the tokens
-    protected $_token_table = 'tokens';
+    protected static $_token_table = '_tokens';
 
-    // The Time-To-Live of the tokens, expressed in minutes.
-    protected $_token_ttl = 60;
+    // The Time-To-Live of the tokens, expressed in hours.
+    protected static $_token_ttl = 1;
 
     // The token size in characters
-    protected $_token_size = 64;
+    protected static $_token_size = 64;
 
     // The token available characters for use
-    protected $_token_seed = [
+    protected static $_token_seed = [
                                 '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 
                                 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
                                 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -28,27 +28,27 @@ class Token {
      *
      * @return  string
      */
-    public function createToken($opts = [])
+    public static function createToken($opts = [])
     {
         $now = date('Y-m-d H:i:s');
         $defaults = [
-            'client' => Request::ip(),
+            'device_id' => Request::ip(),
             'role' => 'enduser'
         ];
         $opts = array_merge($defaults, $opts);
 
-        // Check if any valid tokens exist for this client
+        // Check if any valid tokens exist for this device_id
         //   - Return it if it does
         //   - Generate new one if it doesn't
-        $existing = DB::table($this->_token_table)
-            ->where('client', '=', $opts['client'])
+        $existing = DB::table(self::$_token_table)
+            ->where('device_id', '=', $opts['device_id'])
             ->where('expires_at', '>', $now)
             ->where('role', '=', $opts['role']);
 
         if ($existing->count() == 0) {
             // No token found - Generate a new one
-            $tkn = $this->generateToken();
-            $this->saveToken($tkn, $opts['client'], $opts['role']);
+            $tkn = self::generateToken();
+            self::saveToken($tkn, $opts['device_id'], $opts['role']);
         } else {
             // Return the existing token
             $token_data = $existing->first();
@@ -64,11 +64,11 @@ class Token {
      * @param   string
      * @return  bool
      */
-    public function checkToken($tkn = '', $role = 'enduser')
+    public static function checkToken($tkn = '', $role = 'enduser')
     {
         $now = date('Y-m-d H:i:s');
-        $existing_token_count = DB::table($this->_token_table)
-            ->where('token', $tkn)
+        $existing_token_count = DB::table(self::$_token_table)
+            ->where('auth_token', $tkn)
             ->where('expires_at', '>', $now)
             ->count();
         if ($existing_token_count == 1) {
@@ -83,11 +83,12 @@ class Token {
      *
      * @return  string
      */
-    public function generateToken()
+     
+    public static function generateToken()
     {
         $new_token = '';
-        $seed = $this->_token_seed;
-        $max_len = $this->_token_size;
+        $seed = self::$_token_seed;
+        $max_len = self::$_token_size;
         srand(time());
         shuffle($seed);
         for($a = 1; $a <= $max_len; $a++) {
@@ -97,13 +98,13 @@ class Token {
             shuffle($seed);
         }
 
-        $duplicates = DB::table($this->_token_table)
-            ->where('token', $new_token)
+        $duplicates = DB::table(self::$_token_table)
+            ->where('auth_token', $new_token)
             ->count();
         while($duplicates > 0) {
-            $new_token = $this->generateToken();
-            $duplicates = DB::table($this->_token_table)
-                ->where('token', $new_token)
+            $new_token = self::generateToken();
+            $duplicates = DB::table(self::$_token_table)
+                ->where('auth_token', $new_token)
                 ->count();
         }
         return $new_token;
@@ -115,17 +116,17 @@ class Token {
      *
      * @return  void
      */
-    public function saveToken($tkn = '', $client = '', $role = 'enduser')
+    public static function saveToken($tkn = '', $device_id = '', $role = 'enduser')
     {
-        if ($tkn != '' && $client != '') {
-            DB::table($this->_token_table)
+        if ($tkn != '' && $device_id != '') {
+            DB::table(self::$_token_table)
                 ->insert([[
-                    'token' => $tkn,
-                    'client' => $client,
+                    'auth_token' => $tkn,
+                    'device_id' => $device_id,
                     'role' => $role,
                     'created_at' => date('Y-m-d H:i:s'),
                     'updated_at' => date('Y-m-d H:i:s'),
-                    'expires_at' => date('Y-m-d H:i:s', strtotime("+" . $this->_token_ttl . " minutes")),
+                    'expires_at' => date('Y-m-d H:i:s', strtotime("+" . self::$_token_ttl . " hours")),
                 ]]);
         }
     }
@@ -136,25 +137,47 @@ class Token {
      *
      * @return  string
      */
-    public function renewToken($old_tkn = '', $client = '', $role = 'enduser')
+    public static function renewToken($old_tkn = '', $device_id = '', $role = 'enduser')
     {
         $new_token = $old_tkn;
-        if ($old_tkn != '' && $client != '') {
+        if ($old_tkn != '' && $device_id != '') {
             $now = date('Y-m-d H:i:s');
-            $existing_token = DB::table($this->_token_table)
-                ->where('token', $old_tkn)
+            $existing_token = DB::table(self::$_token_table)
+                ->where('auth_token', '=', $old_tkn)
                 ->where('expires_at', '<', $now)
-                ->where('client', $client)
-                ->where('role', $role);
+                ->where('device_id', '=', $device_id)
+                ->where('role', '=', $role);
             if ($existing_token->count() == 1) {
                 $token_data = $existing_token->first();
-                $new_token = $this->generateToken();
-                $token_data->token = $new_token;
-                $token_data->expires_at = date('Y-m-d H:i:s', strtotime("+" . $this->_token_ttl . " minutes"));
-                $token_data->update();
+                $new_token = self::generateToken();
+                DB::table(self::$_token_table)
+                    ->where('id', $token_data->id)
+                    ->update([
+                        'auth_token' => $new_token,
+                        'expires_at' => date('Y-m-d H:i:s', strtotime("+" . self::$_token_ttl . " hours"))
+                    ]);
                 return $new_token;
             }
         }
         return $new_token;
+    }
+
+    /**
+     * Check expired token existance by device_id and role
+     *
+     *
+     * @return  bool
+     */
+    public static function expiredToken($device_id = '', $role = 'enduser')
+    {
+        $now = date('Y-m-d H:i:s');
+        $existing_token = DB::table(self::$_token_table)
+            ->where('expires_at', '<', $now)
+            ->where('device_id', $device_id)
+            ->where('role', $role);
+        if ($existing_token->count() == 1) {
+            return true;
+        }
+        return false;
     }
 }

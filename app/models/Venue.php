@@ -8,19 +8,69 @@ class Venue extends Eloquent {
 	 */
 	protected $table = 'venues';
 
-	public static function getDistance($lat1, $lon1, $lat2, $lon2)
+	/**
+	* Calculate the distance from the user to the venue based on two sets of coordinates
+	*
+	* @param 	lat1 		float 	user's latitude
+	* @param 	lon1		float 	user's longitude
+	* @param 	lat2		float 	venue's latitude
+	* @param 	lon2 		float 	venue's longitude
+	* @param 	start_count	int 	key driver for the venues array
+	* @param 	low_count 	int 	key driver for the venues with no coordinates, used to place them at the bottom
+	*
+	* @return 	array
+	*/
+	public static function getDistance($lat1, $lon1, $lat2, $lon2, $start_count = 0, $low_count = 99999999999)
 	{
-		$earth_radius = 3960;
-		$delta_lat = $lat2 - $lat1;
-		$delta_lon = $lon2 - $lon1;
-		$distance  = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($delta_lon)) ;
-		$distance  = acos($distance);
-		$distance  = rad2deg($distance);
-		$distance  = $distance * 60 * 1.1515;
-		$distance  = round($distance, 4);
-		return $distance;
+		if ($lat2 != '' && $lon2 != '') {
+			$earth_radius = 3960;
+			$delta_lat = $lat2 - $lat1;
+			$delta_lon = $lon2 - $lon1;
+			$distance  = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($delta_lon)) ;
+			$distance  = acos($distance);
+			$distance  = rad2deg($distance);
+			$distance  = $distance * 60 * 1.1515;
+			$distance  = round($distance, 4);
+			$venue_key = $start_count;
+		} else {
+			$distance = $low_count - $start_count;
+			$venue_key = $low_count - $start_count;
+		}
+		return [$distance, $venue_key];
 	}
 
+	/**
+	* Return an array of categories with their name, id and stub
+	*
+	* @param 	string 		JSON formatted string extracted from the venue entry 
+	* @return 	array
+	*/
+	public static function getCategories($categories_json = '')
+	{
+		$categories = Category::getCategories();
+		$venue_categories = [];
+		$vc = (array)json_decode($categories_json, true);
+		foreach($vc as $venue_category) {
+			if (isset($categories[$venue_category])) {
+				$venue_categories[] = [
+					'name' => $categories[$venue_category]['name'],
+					'id' => $venue_category,
+					'stub' => $categories[$venue_category]['stub']
+				];
+			}
+		}
+		return $venue_categories;
+	}
+
+	/**
+	* Return an array containing if the venue is streaming or not and when it should start next
+	*
+	* @param 	string 		JSON formatted string extracted from the venue entry 
+	* @param 	int 		The timezone of the venue
+	* @param 	string 		The user's literal day name
+	* @param 	int 		The user's date and time reported to GTM
+	* @return 	array
+	*/
 	public static function checkStream($venue_feed_schedule, $venue_feed_timezone, $today_day, $user_gmt_time)
 	{
 		$schedule = (array)json_decode($venue_feed_schedule, true);

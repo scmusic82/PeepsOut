@@ -31,30 +31,26 @@ Route::get('/', function() {
 Route::group(['prefix' => 'v1'], function() {
 
     // Authentification 
-    Route::get('auth', function(){ return ''; });
     Route::post('auth',                 'AuthController@index');
     Route::post('auth/{device_id}',     'AuthController@update');
-    Route::delete('auth/{device_id}',   'AuthController@destroy');
     
     // Categories
-    Route::get('categories',            'CategoriesController@index');
-    Route::get('test',                  'CategoriesController@testout');
+    Route::get('categories',            ['before' => 'auth', 'uses' => 'CategoriesController@index']);
     
     // Venues
-    Route::get('venues',                'VenuesController@index');
-    Route::get('venues/specials',       'VenuesController@listSpecials');
-    Route::get('venues/favourites',     'VenuesController@listFavourites');
-    Route::put('venues/{venue_id}/fav', 'VenuesController@markFavourite');
-    Route::get('venues/suggestions',    'VenuesController@showSuggestions');
-    Route::get('venues/{venue_id}',     'VenuesController@show');
-
+    Route::get('venues',                ['before' => 'auth', 'uses' => 'VenuesController@index']);
+    Route::get('venues/specials',       ['before' => 'auth', 'uses' => 'VenuesController@listSpecials']);
+    Route::get('venues/favourites',     ['before' => 'auth', 'uses' => 'VenuesController@listFavourites']);
+    Route::put('venues/{venue_id}/fav', ['before' => 'auth', 'uses' => 'VenuesController@markFavourite']);
+    Route::get('venues/suggestions',    ['before' => 'auth', 'uses' => 'VenuesController@showSuggestions']);
+    Route::get('venues/{venue_id}',     ['before' => 'auth', 'uses' => 'VenuesController@show']);
 
     // Users
-    Route::get('users/{user_id}',       'UsersController@show');
+    Route::get('users/{user_id}',       ['before' => 'auth', 'uses' => 'UsersController@show']);
 
     // FAQs
-    Route::get('faqs',                  'FaqController@index');
+    Route::get('faqs',                  ['before' => 'auth', 'uses' => 'FaqController@index']);
 
     // Cities
-    Route::get('cities',                'CitiesController@index');
+    Route::get('cities',                ['before' => 'auth', 'uses' => 'CitiesController@index']);
 });

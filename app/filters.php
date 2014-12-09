@@ -35,16 +35,20 @@ App::after(function($request, $response)
 
 Route::filter('auth', function()
 {
-	if (Auth::guest())
-	{
-		if (Request::ajax())
-		{
-			return Response::make('Unauthorized', 401);
-		}
-		else
-		{
-			return Redirect::guest('login');
-		}
+	// if (Auth::guest())
+	// {
+	// 	if (Request::ajax())
+	// 	{
+	// 		return Response::make('Unauthorized', 401);
+	// 	}
+	// 	else
+	// 	{
+	// 		return Redirect::guest('login');
+	// 	}
+	// }
+
+	if (!Tkn::checkToken(Request::header('Authorization'))) {
+		return Response::json(['status' => Config::get('constants.ERR_AUTH'), 'message' => Lang::get('messages.auth_error')], 401);
 	}
 });
 

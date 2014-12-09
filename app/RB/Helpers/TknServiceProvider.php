@@ -2,11 +2,11 @@
 
 use \Illuminate\Support\ServiceProvider;
 
-class UtilsServiceProvider extends ServiceProvider {
+class TknServiceProvider extends ServiceProvider {
 
     public function register()
     {
-        $this->app->bind('utils', 'RB\Helpers\Utils');
+        $this->app->bind('tkn', 'RB\Helpers\Tkn');
     }
 
 }

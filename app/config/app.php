@@ -122,6 +122,7 @@ return array(
         'Illuminate\View\ViewServiceProvider',
         'Illuminate\Workbench\WorkbenchServiceProvider',
         'RB\Helpers\UtilsServiceProvider',
+        'RB\Helpers\TknServiceProvider',
     ),
 
     /*
@@ -189,6 +190,7 @@ return array(
         'Validator'         => 'Illuminate\Support\Facades\Validator',
         'View'              => 'Illuminate\Support\Facades\View',
         'Utils'             => 'RB\Helpers\Utils',
+        'Tkn'               => 'RB\Helpers\Tkn',
     ),
 
 );

@@ -2,11 +2,11 @@
 
 use Illuminate\Support\Facades\Facade;
 
-class Token extends Facade {
+class Tkn extends Facade {
 
     protected static function getFacadeAccessor()
     {
-        return 'token';
+        return 'tkn';
     }
 
 }

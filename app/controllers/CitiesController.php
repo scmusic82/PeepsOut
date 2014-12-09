@@ -9,30 +9,26 @@ class CitiesController extends \BaseController {
 	 */
 	public function index()
 	{
-		if (Request::header('Authorization')) {
-			$auth_token = Request::header('Authorization');
-			if (Token::checkToken($auth_token)) {
+		$response = [
+			'status' => Config::get('constants.SUCCESS'), 
+			'cities' => []
+		];
 
-				$response = ['status' => 1, 'cities' => []];
-
-				$existing_cities = City::where('id', '>', 0)->orderBy('name');
-				if ($existing_cities->count() > 0) {
-					foreach($existing_cities->get() as $key => $val) {
-						$city = [];
-						$city['name'] = $val->name;
-						$city['neighbourhoods'] = [];
-						if ($val->neighbourhoods->count() > 0) {
-							foreach($val->neighbourhoods as $neighbourhood) {
-								$city['neighbourhoods'][] = $neighbourhood->name;
-							}
-						}
-						$response['cities'][] = $city;
+		$existing_cities = City::where('id', '>', 0)->orderBy('name');
+		if ($existing_cities->count() > 0) {
+			foreach($existing_cities->get() as $key => $val) {
+				$city = [];
+				$city['name'] = $val->name;
+				$city['neighbourhoods'] = [];
+				if ($val->neighbourhoods->count() > 0) {
+					foreach($val->neighbourhoods as $neighbourhood) {
+						$city['neighbourhoods'][] = $neighbourhood->name;
 					}
 				}
-				return Response::json($response, 200);
+				$response['cities'][] = $city;
 			}
 		}
-		return Response::json(['status' => 2, 'message' => Lang::get('messages.auth_error')], 401);
+		return Response::json($response, 200);
 	}
 
 }
