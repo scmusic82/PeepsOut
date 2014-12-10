@@ -83,6 +83,4 @@ class AuthController extends BaseController {
 			'auth_token' => $auth_token
 			], 200);
 	}
-
-
 }
