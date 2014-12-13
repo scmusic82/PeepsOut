@@ -33,7 +33,7 @@ class VenuesController extends \BaseController {
 			$category_condition = " AND category_id LIKE '%" . $search_category . "%'";
 		}
 
-		$existing_venues = Venue::whereRaw("id > 0" . $kw_condition . $category_condition);
+		$existing_venues = Venue::whereRaw("id > 0 AND soft_delete = 0" . $kw_condition . $category_condition);
 		$all_venues = $returned_venues = $distances = [];
 		if ($existing_venues->count() > 0) {
 			
@@ -242,7 +242,9 @@ class VenuesController extends \BaseController {
 		$today_day = date('l', $timestamp);
 		$user_gmt_time = intval($timestamp) - intval($timezone);
 
-		$existing_venues = Venue::where('specials', '!=', '')->where('specials', '!=', '[]');
+		$existing_venues = Venue::where('soft_delete = 0')
+			->where('specials', '!=', '')
+			->where('specials', '!=', '[]');
 		if ($existing_venues->count() > 0) {
 
 			$categories = Category::getCategories();
@@ -318,7 +320,8 @@ class VenuesController extends \BaseController {
 		}
 
 		if (count($all_favourites) > 0) {
-			$existing_venues = Venue::whereIn('venue_id', $all_favourites)->orderBy('name');
+			$existing_venues = Venue::where('soft_delete = 0')
+				->whereIn('venue_id', $all_favourites);
 			if ($existing_venues->count() > 0) {
 				$categories = Category::getCategories();
 				$found_venues = $existing_venues->get();
@@ -371,7 +374,8 @@ class VenuesController extends \BaseController {
 
 		if ($kw != '') {
 			$kw = Utils::stopWords(Utils::purify($kw));
-			$venues = Venue::where('search_field', 'like', '%' . $kw . '%');
+			$venues = Venue::where('soft_delete = 0')
+				->where('search_field', 'like', '%' . $kw . '%');
 			if ($venues->count() > 0) {
 				foreach($venues->get() as $venue) {
 					$suggestions[] = $venue->name;
