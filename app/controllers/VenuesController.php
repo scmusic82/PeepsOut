@@ -14,8 +14,10 @@ class VenuesController extends \BaseController {
 
 		$timestamp = Input::get('timestamp', strtotime('now'));
 		$timezone = Input::get('timezone', '-18000');
-		$lat = Input::get('lat', 40.758915);
-		$lon = Input::get('lon', -73.985120);
+		$lat = Input::get('lat', 40.758895);
+        $lon = Input::get('lon', -73.985131);
+        if ($lat == '') { $lat = 40.758895; }
+        if ($lon == '') { $lon = -73.985131; }
 		$low_count = 99999999999;
 		$start_count = 0;
 
@@ -87,8 +89,10 @@ class VenuesController extends \BaseController {
 		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
 		$user = $token->user;
 
-		$lat = Input::get('lat', 40.758915);
-		$lon = Input::get('lon', -73.985120);
+		$lat = Input::get('lat', 40.758895);
+        $lon = Input::get('lon', -73.985131);
+        if ($lat == '') { $lat = 40.758895; }
+        if ($lon == '') { $lon = -73.985131; }
 		$timestamp = Input::get('timestamp', strtotime('now'));
 		$timezone = Input::get('timezone', '-18000');
 		$today_day = date('l', $timestamp);
@@ -234,8 +238,10 @@ class VenuesController extends \BaseController {
 
 		$timestamp = Input::get('timestamp', strtotime('now'));
 		$timezone = Input::get('timezone', '-18000');
-		$lat = Input::get('lat', 40.758915);
-		$lon = Input::get('lon', -73.985120);
+		$lat = Input::get('lat', 40.758895);
+		$lon = Input::get('lon', -73.985131);
+        if ($lat == '') { $lat = 40.758895; }
+        if ($lon == '') { $lon = -73.985131; }
 		$low_count = 99999999999;
 		$start_count = 0;
 
@@ -302,8 +308,10 @@ class VenuesController extends \BaseController {
 
 		$timestamp = Input::get('timestamp', strtotime('now'));
 		$timezone = Input::get('timezone', '-18000');
-		$lat = Input::get('lat', 40.758915);
-		$lon = Input::get('lon', -73.985120);
+		$lat = Input::get('lat', 40.758895);
+        $lon = Input::get('lon', -73.985131);
+        if ($lat == '') { $lat = 40.758895; }
+        if ($lon == '') { $lon = -73.985131; }
 		$low_count = 99999999999;
 		$start_count = 0;
 
