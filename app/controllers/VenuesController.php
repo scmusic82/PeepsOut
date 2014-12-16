@@ -248,7 +248,7 @@ class VenuesController extends \BaseController {
 		$today_day = date('l', $timestamp);
 		$user_gmt_time = intval($timestamp) - intval($timezone);
 
-		$existing_venues = Venue::where('soft_delete = 0')
+		$existing_venues = Venue::where('soft_delete', '=', '0')
 			->where('specials', '!=', '')
 			->where('specials', '!=', '[]');
 		if ($existing_venues->count() > 0) {
@@ -259,8 +259,14 @@ class VenuesController extends \BaseController {
 			
 			foreach($found_venues as $venue) {
 				$specials = json_decode($venue->specials, true);
-				if (isset($specials['event']) && $specials['event'] == '0') {
-					
+                foreach($specials as $special) {
+                    $add_venue = false;
+    				if (isset($special['event']) && $special['event'] == '0') {
+    				    $add_venue = true;
+                        break;
+                    }
+                }
+                if ($add_venue) {
 					list($is_streaming, $next_stream_in) = Venue::checkStream($venue->feed_schedule, $venue->feed_timezone, $today_day, $user_gmt_time);
 					list($distance, $venue_key) = Venue::getDistance($lat, $lon, $venue->location_lat, $venue->location_lon, $start_count, $low_count);
 					$distances[$venue_key] = $distance;
@@ -284,7 +290,7 @@ class VenuesController extends \BaseController {
 					$venue->impressions++;
 					$venue->update();
 					$start_count++;
-				}
+    			}
 			}
 		}
 		@asort($distances);
@@ -328,7 +334,7 @@ class VenuesController extends \BaseController {
 		}
 
 		if (count($all_favourites) > 0) {
-			$existing_venues = Venue::where('soft_delete = 0')
+			$existing_venues = Venue::where('soft_delete', '=', '0')
 				->whereIn('venue_id', $all_favourites);
 			if ($existing_venues->count() > 0) {
 				$categories = Category::getCategories();
@@ -382,7 +388,7 @@ class VenuesController extends \BaseController {
 
 		if ($kw != '') {
 			$kw = Utils::stopWords(Utils::purify($kw));
-			$venues = Venue::where('soft_delete = 0')
+			$venues = Venue::where('soft_delete', '=', '0')
 				->where('search_field', 'like', '%' . $kw . '%');
 			if ($venues->count() > 0) {
 				foreach($venues->get() as $venue) {
