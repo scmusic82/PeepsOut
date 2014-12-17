@@ -120,64 +120,8 @@ class VenuesController extends \BaseController {
 			}
 		}
 
-		$venue_specials = $venue_events = [];
-		$specials = (array)json_decode($venue->specials, true);
-		$today = strtotime('now');
-		foreach($specials as $k => $v) {
-			$special = $event = [];
-			if (isset($v['description'])) {
-				$is_event = $v['event'] == '1' ? true : false;
-				if (trim($v['from']) == '' && trim($v['until']) == '') {
-					// No time limit
-					if ($is_event) {
-						// It's an event
-						$event['description'] = $v['description'];
-						$event['day'] = $v['day'];
-					} else {
-						// It's a special
-						$special['description'] = $v['description'];
-						$special['day'] = $v['day'];
-					}
-				} else if (trim($v['from']) != '' && trim($v['until']) != '') {
-					// Timed
-					if ($today > strtotime($v['from'] . ' 00:00:00') && $today < strtotime($v['until'] . ' 23:59:59')) {
-						// Is happening
-						if ($is_event) {
-							// It's an event
-							$event['description'] = $v['description'];
-							$event['day'] = $v['day'];
-							$event['starts'] = $v['from'];
-							$event['ends'] = $v['until'];
-						} else {
-							// It's a special
-							$special['description'] = $v['description'];
-							$special['day'] = $v['day'];
-							$special['starts'] = $v['from'];
-							$special['ends'] = $v['until'];
-						}
-					}
-				} else if (trim($v['from']) != '' && trim($v['forever']) == '1') {
-					// Never finishes
-					if ($today > strtotime($v['from'] . ' 00:00:00')) {
-						// Is happening
-						if ($is_event) {
-							// It's an event
-							$event['description'] = $v['description'];
-							$event['day'] = $v['day'];
-							$event['starts'] = $v['from'];
-						} else {
-							// It's a special
-							$special['description'] = $v['description'];
-							$special['day'] = $v['day'];
-							$special['starts'] = $v['from'];
-						}
-					}
-				}
-			}
-			if (count($special) > 0) { $venue_specials[$v['group']][] = $special; }
-			if (count($event) > 0) { $venue_events[$v['group']][] = $event; }
-		}
-
+        $specials = (array)json_decode($venue->specials, true);
+        list($venue_specials, $venue_events) = Venue::getVenueSpecials($specials);
 
 		$venue_images = [];
 		$images = (array)json_decode($venue->images, true);
@@ -272,6 +216,9 @@ class VenuesController extends \BaseController {
 					$distances[$venue_key] = $distance;
 					$venue_categories = Venue::getCategories($venue->category_id);
 
+                    $specials = (array)json_decode($venue->specials, true);
+                    list($venue_specials, $venue_events) = Venue::getVenueSpecials($specials);
+
 					$all_venues[$venue_key] = [
 						'venue_id' 		=> $venue->venue_id,
 						'name' 			=> $venue->name,
@@ -284,7 +231,9 @@ class VenuesController extends \BaseController {
 							'lat' 		=> $venue->location_lat, 
 							'lon' 		=> $venue->location_lon,
 							'distance'	=> number_format($distance, 2, '.', '')
-						]
+						],
+                        'specials'      => $venue_specials,
+                        'events'        => $venue_events
 					];
 
 					$venue->impressions++;
