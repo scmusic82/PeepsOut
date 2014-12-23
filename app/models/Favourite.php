@@ -8,6 +8,12 @@ class Favourite extends Eloquent {
 	 */
 	protected $table = '_favourites';
 
+	/**
+	 * Gather current user's favourites
+	 *
+	 * @param string $user_id
+	 * @return array
+	 */
 	public static function getFavourites($user_id = '')
 	{
 		if ($user_id == '') { return []; }

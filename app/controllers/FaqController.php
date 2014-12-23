@@ -24,6 +24,7 @@ class FaqController extends \BaseController {
 			}
 		}
 
+		Metric::registerCall('faq', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
 		return Response::json($response, 200);
 	}
 

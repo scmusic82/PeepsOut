@@ -81,9 +81,16 @@ class VenuesController extends \BaseController {
 			'total_results' => count($returned_venues),
 			'venues' => $returned_venues
 		];
+		Metric::registerCall('venues', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
 		return Response::json($response, 200);
 	}
 
+	/**
+	 * Display venue details
+	 *
+	 * @param $venue_id
+	 * @return \Illuminate\Http\JsonResponse
+	 */
 	public function show($venue_id)
 	{
 		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
@@ -121,7 +128,7 @@ class VenuesController extends \BaseController {
 		}
 
         $specials = (array)json_decode($venue->specials, true);
-        list($venue_specials, $venue_events) = Venue::getVenueSpecials($specials);
+        $venue_specials = Venue::getVenueSpecials($specials);
 
 		$venue_images = [];
 		$images = (array)json_decode($venue->images, true);
@@ -147,11 +154,14 @@ class VenuesController extends \BaseController {
 				"phone_numbers" => array_values((array)json_decode($venue->phone_numbers, true))
 			],
 			"specials" 			=> $venue_specials,
-			"events" 			=> $venue_events,
 			"images" 			=> $venue_images,
 			"streaming"			=> $is_streaming,
 			"stream_in"			=> $next_stream_in
 		];
+		$venue->visits++;
+		$venue->update();
+
+		Metric::registerCall('venues/' . $venue_id, Request::getClientIp(), Config::get('constants.SUCCESS'), '');
 		return Response::json($response, 200);
 	}
 
@@ -169,6 +179,7 @@ class VenuesController extends \BaseController {
 			$favourite = $existing_favourites->first();
 			$favourite->delete();
 		}
+		Metric::registerCall('venues/' . $venue_id . '/fav', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
 		return Response::make('', 200);
 	}
 
@@ -217,7 +228,7 @@ class VenuesController extends \BaseController {
 					$venue_categories = Venue::getCategories($venue->category_id);
 
                     $specials = (array)json_decode($venue->specials, true);
-                    list($venue_specials, $venue_events) = Venue::getVenueSpecials($specials);
+                    $venue_specials = Venue::getVenueSpecials($specials);
 
 					$all_venues[$venue_key] = [
 						'venue_id' 		=> $venue->venue_id,
@@ -232,8 +243,7 @@ class VenuesController extends \BaseController {
 							'lon' 		=> $venue->location_lon,
 							'distance'	=> number_format($distance, 2, '.', '')
 						],
-                        'specials'      => $venue_specials,
-                        'events'        => $venue_events
+                        'specials'      => $venue_specials
 					];
 
 					$venue->impressions++;
@@ -247,6 +257,7 @@ class VenuesController extends \BaseController {
 			$returned_venues[] = $all_venues[$key];
 		}
 
+		Metric::registerCall('venues/specials', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
 		return Response::json([
 			'status' => Config::get('constants.SUCCESS'), 
 			'total_results' => count($returned_venues), 
@@ -320,6 +331,7 @@ class VenuesController extends \BaseController {
 		foreach($distances as $key => $distance) {
 			$returned_venues[] = $all_venues[$key];
 		}
+		Metric::registerCall('venues/favourites', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
 		return Response::json([
 			'status' => Config::get('constants.SUCCESS'), 
 			'total_results' => count($returned_venues), 
@@ -347,6 +359,7 @@ class VenuesController extends \BaseController {
 		}
 		$suggestions = array_unique($suggestions);
 		@asort($suggestions);
+		Metric::registerCall('venues/suggestions', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
 		return Response::json([
 			'status' => Config::get('constants.SUCCESS'), 
 			'suggestions' => $suggestions

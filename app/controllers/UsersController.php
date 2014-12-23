@@ -22,7 +22,7 @@ class UsersController extends \BaseController {
 				$response_data = array_merge($response_data, $user->toArray());
 			}
 		}
-		
+		Metric::registerCall('users/' . $user_id, Request::getClientIp(), Config::get('constants.SUCCESS'), '');
 		return Response::json($response_data, 200);
 	}
 

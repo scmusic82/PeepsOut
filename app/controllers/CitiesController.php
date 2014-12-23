@@ -28,6 +28,7 @@ class CitiesController extends \BaseController {
 				$response['cities'][] = $city;
 			}
 		}
+		Metric::registerCall('cities', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
 		return Response::json($response, 200);
 	}
 

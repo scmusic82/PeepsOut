@@ -26,15 +26,10 @@ class CategoriesController extends \BaseController {
 				$category->update();
 			}
 		}
+		Metric::registerCall('categories', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
 		return Response::json([
 			'status' => Config::get('constants.SUCCESS'), 
 			'categories' => $categories
 			], 200);
-	}
-
-	
-	public static function testout()
-	{
-		return Utils::testdb();
 	}
 }
