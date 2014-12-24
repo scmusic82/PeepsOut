@@ -19,8 +19,11 @@ class Metric extends Eloquent {
      */
     public static function registerCall($endpoint = '', $called_from = '', $status = 1, $message = '')
     {
+        $today = date('Y-m-d 00:00:00');
         if ($endpoint != '' && $called_from != '') {
-            $existing_metric = Metric::where('endpoint', '=', $endpoint)->where('called_from', '=', $called_from);
+            $existing_metric = Metric::where('endpoint', '=', $endpoint)
+                ->where('called_from', '=', $called_from)
+                ->where('called_at', '>', $today);
             if ($existing_metric->count() > 0) {
                 $metric = $existing_metric->first();
                 $metric->times_called++;
