@@ -53,11 +53,20 @@ class VenuesController extends \BaseController {
 				$distances[$venue_key] = $distance;
 				$venue_categories = Venue::getCategories($venue->category_id);
 
+				$feed_schedule = [];
+				$schedule = (array)json_decode($venue->feed_schedule, true);
+				foreach($schedule as $k => $v) {
+					if (isset($v['days']) && count($v['days']) > 0) {
+						$feed_schedule[] = ['days' => $v['days'], 'hours' => $v['hours']];
+					}
+				}
+
 				$all_venues[$venue_key] = [
 					'venue_id' 		=> $venue->venue_id,
 					'name' 			=> $venue->name,
 					'categories'	=> $venue_categories,
-					'feed' 			=> $venue->feed, 
+					'feed' 			=> $venue->feed,
+					'feed_schedule' => $feed_schedule,
 					'favourite' 	=> (isset($user_favourites[$venue->venue_id]) ? 1 : 0), 
 					'streaming'		=> $is_streaming,
 					'stream_in'		=> $next_stream_in,
@@ -70,6 +79,7 @@ class VenuesController extends \BaseController {
 				$venue->impressions++;
 				$venue->update();
 				$start_count++;
+
 			}
 		}
 		@asort($distances);
