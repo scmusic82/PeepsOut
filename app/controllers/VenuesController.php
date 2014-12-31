@@ -74,7 +74,13 @@ class VenuesController extends \BaseController {
 						'lat' 		=> $venue->location_lat, 
 						'lon' 		=> $venue->location_lon,
 						'distance'	=> number_format($distance, 2, '.', '')
-					]
+					],
+					"details" 			=> [
+						"description" 	=> strip_tags($venue->description),
+						"web_address" 	=> $venue->web_address,
+						"email_address" => $venue->email_address,
+						"phone_numbers" => array_values((array)json_decode($venue->phone_numbers, true))
+					],
 				];
 				$venue->impressions++;
 				$venue->update();
@@ -158,7 +164,7 @@ class VenuesController extends \BaseController {
 				"distance"		=> number_format($distance, 2, '.', '')
 			],
 			"details" 			=> [
-				"description" 	=> $venue->description,
+				"description" 	=> strip_tags($venue->description),
 				"web_address" 	=> $venue->web_address,
 				"email_address" => $venue->email_address,
 				"phone_numbers" => array_values((array)json_decode($venue->phone_numbers, true))
