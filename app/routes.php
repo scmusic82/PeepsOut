@@ -41,8 +41,8 @@ Route::group(['prefix' => 'v1'], function() {
     Route::get('venues',                ['before' => 'auth', 'uses' => 'VenuesController@index']);
     Route::get('venues/specials',       ['before' => 'auth', 'uses' => 'VenuesController@listSpecials']);
     Route::get('venues/favourites',     ['before' => 'auth', 'uses' => 'VenuesController@listFavourites']);
-    Route::put('venues/{venue_id}/fav', ['before' => 'auth', 'uses' => 'VenuesController@markFavourite']);
     Route::get('venues/suggestions',    ['before' => 'auth', 'uses' => 'VenuesController@showSuggestions']);
+    Route::put('venues/{venue_id}/fav', ['before' => 'auth', 'uses' => 'VenuesController@markFavourite']);
     Route::get('venues/{venue_id}',     ['before' => 'auth', 'uses' => 'VenuesController@show']);
 
     // Users
