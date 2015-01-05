@@ -127,6 +127,7 @@ class VenuesController extends \BaseController {
 		list($distance, $venue_key) = Venue::getDistance($lat, $lon, $venue->location_lat, $venue->location_lon);
 
 		$venue_categories = Venue::getCategories($venue->category_id);
+		$user_favourites = Favourite::getFavourites($user->user_id);
 		
 		$feed_schedule = [];
 		$schedule = (array)json_decode($venue->feed_schedule, true);
@@ -151,6 +152,7 @@ class VenuesController extends \BaseController {
 			"categories" 		=> $venue_categories,
 			"feed" 				=> $venue->feed,
 			"feed_schedule" 	=> $feed_schedule,
+			'favourite' 		=> (isset($user_favourites[$venue->venue_id]) ? 1 : 0),
 			"location" 			=> [
 				"lat" 			=> $venue->location_lat,
 				"lon" 			=> $venue->location_lon,
