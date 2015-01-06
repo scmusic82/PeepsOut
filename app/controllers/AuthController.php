@@ -40,7 +40,8 @@ class AuthController extends BaseController {
 						$token = Tkn::renewToken($db_user->token->auth_token, $device_id);
 						$return_data = [
 							'status' => Config::get('constants.SUCCESS'), 
-							'auth_token' => $token, 
+							'auth_token' => $token,
+							'expires_at' => strtotime($db_user->token->expires_at),
 							'user_id' => $db_user->user_id, 
 							'name' => $db_user->name, 
 							'photo' => $db_user->photo
@@ -48,7 +49,8 @@ class AuthController extends BaseController {
 					} else {
 						$return_data = [
 							'status' => Config::get('constants.SUCCESS'), 
-							'auth_token' => $db_user->token->auth_token, 
+							'auth_token' => $db_user->token->auth_token,
+							'expires_at' => strtotime($db_user->token->expires_at),
 							'user_id' => $db_user->user_id, 
 							'name' => $db_user->name, 
 							'photo' => $db_user->photo
