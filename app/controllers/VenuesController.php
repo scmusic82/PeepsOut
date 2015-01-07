@@ -143,7 +143,7 @@ class VenuesController extends \BaseController {
 		$venue_images = [];
 		$images = (array)json_decode($venue->images, true);
 		foreach ($images as $image) {
-			$venue_images[] = asset($image);
+			$venue_images[] = Config::get('constants.IMG_HOST') . trim($image, '/');
 		}
 		$response = [
 			"status"			=> Config::get('constants.SUCCESS'),
