@@ -139,7 +139,12 @@ class VenuesController extends \BaseController {
 
         $specials = (array)json_decode($venue->specials, true);
         $venue_specials = Venue::getVenueSpecials($specials);
-
+		$specials_order = [];
+		if (count($venue_specials) > 0) {
+			foreach($venue_specials as $k => $v) {
+				$specials_order[] = $k;
+			}
+		}
 		$venue_images = [];
 		$images = (array)json_decode($venue->images, true);
 		foreach ($images as $image) {
@@ -166,6 +171,7 @@ class VenuesController extends \BaseController {
 				"phone_numbers" => array_values((array)json_decode($venue->phone_numbers, true))
 			],
 			"specials" 			=> $venue_specials,
+			"specials_order"	=> $specials_order,
 			"images" 			=> $venue_images,
 			"streaming"			=> $is_streaming,
 			"stream_in"			=> $next_stream_in
@@ -242,6 +248,13 @@ class VenuesController extends \BaseController {
                     $specials = (array)json_decode($venue->specials, true);
                     $venue_specials = Venue::getVenueSpecials($specials);
 
+					$specials_order = [];
+					if (count($venue_specials) > 0) {
+						foreach($venue_specials as $k => $v) {
+							$specials_order[] = $k;
+						}
+					}
+
 					$all_venues[$venue_key] = [
 						'venue_id' 		=> $venue->venue_id,
 						'name' 			=> $venue->name,
@@ -255,7 +268,8 @@ class VenuesController extends \BaseController {
 							'lon' 		=> $venue->location_lon,
 							'distance'	=> number_format($distance, 2, '.', '')
 						],
-                        'specials'      => $venue_specials
+                        'specials'      => $venue_specials,
+						'specials_order'=> $specials_order
 					];
 
 					$venue->impressions++;
