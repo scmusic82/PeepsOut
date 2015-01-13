@@ -42,4 +42,7 @@ return array(
     'dupe_token'                => 'Push notification token already exists',
     'missing_message'           => 'The push notification message is missing',
     'device_not_registered'     => 'The user\'s device is not registered for push notifications',
+
+    // Content
+    'content_not_found'         => 'Specified content was not found',
 );
