@@ -123,6 +123,7 @@ return array(
         'Illuminate\Workbench\WorkbenchServiceProvider',
         'RB\Helpers\UtilsServiceProvider',
         'RB\Helpers\TknServiceProvider',
+        'Davibennun\LaravelPushNotification\LaravelPushNotificationServiceProvider',
     ),
 
     /*
@@ -191,6 +192,7 @@ return array(
         'View'              => 'Illuminate\Support\Facades\View',
         'Utils'             => 'RB\Helpers\Utils',
         'Tkn'               => 'RB\Helpers\Tkn',
+        'PushNotification'  => 'Davibennun\LaravelPushNotification\Facades\PushNotification'
     ),
 
 );

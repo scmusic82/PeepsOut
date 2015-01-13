@@ -46,7 +46,9 @@ Route::group(['prefix' => 'v1'], function() {
     Route::get('venues/{venue_id}',     ['before' => 'auth', 'uses' => 'VenuesController@show']);
 
     // Users
-    Route::get('users/{user_id}',       ['before' => 'auth', 'uses' => 'UsersController@show']);
+    Route::post('users/email',          ['before' => 'auth', 'uses' => 'UsersController@register_email']);
+    Route::post('users/token',          ['before' => 'auth', 'uses' => 'UsersController@register_token']);
+    Route::post('users/push',           ['before' => 'auth', 'uses' => 'UsersController@send_push']);
 
     // FAQs
     Route::get('faqs',                  ['before' => 'auth', 'uses' => 'FaqController@index']);

@@ -3,27 +3,43 @@
 class UsersController extends \BaseController {
 
 
-	/**
-	 * Display the specified resource.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function show($user_id)
-	{
-		$response_data = [
-			'status' => Config::get('constants.SUCCESS')
-		];
+	public function register_email() {
+		$request = Request::instance();
+		$data = (array)json_decode($request->getContent(), true);
 
-		$existing_user = User::where('user_id', '=', $user_id);
-		if ($existing_user->count() == 1) {
-			$user = $existing_user->first();
-			if ($user->user_id == $user_id) {
-				$response_data = array_merge($response_data, $user->toArray());
-			}
+		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
+		$user = $token->user;
+
+		if (!isset($data['email_address']) || (isset($data['email_address']) && trim($data['email_address']) == '')) {
+			return Response::json([
+				'status' => Config::get('constants.ERR_GENERAL'),
+				'message' => Lang::get('messages.missing_email')
+			], 400);
 		}
-		Metric::registerCall('users/' . $user_id, Request::getClientIp(), Config::get('constants.SUCCESS'), '');
-		return Response::json($response_data, 200);
+
+		if (isset($data['email_address']) && trim($data['email_address']) != '') {
+			if (!preg_match('/[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})/', strtolower(Utils::formPrep($data['email_address'])))) {
+				return Response::json([
+					'status' => Config::get('constants.ERR_GENERAL'),
+					'message' => Lang::get('messages.invalid_email')
+				], 400);
+			};
+		}
+		$email_address = strtolower(Utils::formPrep($data['email_address']));
+
+		$dupe_check = User::where('id', '!=', $user->id)->where('email_address', '=', $email_address);
+		if ($dupe_check->count() > 0) {
+			return Response::json([
+				'status' => Config::get('constants.ERR_GENERAL'),
+				'message' => Lang::get('messages.dupe_email')
+			], 400);
+		}
+
+		$user->email_address = $email_address;
+		$user->update();
+		return Response::json([
+			'status' => Config::get('constants.SUCCESS')
+		], 200);
 	}
 
 }

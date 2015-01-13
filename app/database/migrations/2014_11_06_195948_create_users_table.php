@@ -18,6 +18,8 @@ class CreateUsersTable extends Migration {
             $table->string('device_id', 128);
             $table->foreign('device_id')->references('device_id')->on('_tokens')->onDelete('cascade');
             $table->string('user_id', 20)->unique();
+            $table->string('email_address', 128)->unique();
+            $table->string('push_token', 128)->unique();
             $table->timestamps();
         });
     }

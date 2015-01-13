@@ -31,4 +31,9 @@ return array(
 
     // Venues
     'venue_not_found'           => 'Venue not found',
+
+    // Users
+    'missing_email'             => 'Email address is missing',
+    'invalid_email'             => 'Email address is invalid',
+    'dupe_email'                => 'Email address already in use'
 );
