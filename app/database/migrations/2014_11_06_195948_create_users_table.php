@@ -20,6 +20,7 @@ class CreateUsersTable extends Migration {
             $table->string('user_id', 20)->unique();
             $table->string('email_address', 128)->unique();
             $table->string('push_token', 128)->unique();
+            $table->string('token_type', 16);
             $table->timestamps();
         });
     }

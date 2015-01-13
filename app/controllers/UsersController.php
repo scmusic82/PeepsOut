@@ -2,7 +2,11 @@
 
 class UsersController extends \BaseController {
 
-
+	/**
+	 * Register / Update an email address with the current user
+	 *
+	 * @return Response
+	 */
 	public function register_email() {
 		$request = Request::instance();
 		$data = (array)json_decode($request->getContent(), true);
@@ -42,4 +46,65 @@ class UsersController extends \BaseController {
 		], 200);
 	}
 
+	/**
+	 * Register a push notification token with the current user
+	 *
+	 * @return Response
+	 */
+	public function register_token()
+	{
+		$request = Request::instance();
+		$data = (array)json_decode($request->getContent(), true);
+
+		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
+		$user = $token->user;
+
+		if (!isset($data['token']) || (isset($data['token']) && trim($data['token']) == '')) {
+			return Response::json([
+				'status' => Config::get('constants.ERR_GENERAL'),
+				'message' => Lang::get('messages.missing_token')
+			], 400);
+		}
+
+		if (!isset($data['type']) || (isset($data['type']) && trim($data['type']) == '')) {
+			return Response::json([
+				'status' => Config::get('constants.ERR_GENERAL'),
+				'message' => Lang::get('messages.missing_token_type')
+			], 400);
+		}
+
+		$push_token = Utils::formPrep($data['token']);
+		$tt = Utils::formPrep($data['type']);
+		switch($tt) {
+			case "ios":
+				$token_type = 'apns';
+				break;
+			case "android":
+				$token_type = 'gcm';
+				break;
+			default:
+				$token_type = '';
+		}
+		if ($token_type == '') {
+			return Response::json([
+				'status' => Config::get('constants.ERR_GENERAL'),
+				'message' => Lang::get('messages.invalid_token_type')
+			], 400);
+		}
+
+		$dupe_check = User::where('id', '!=', $user->id)->where('push_token', '=', $push_token)->where('token_type', '=', $token_type);
+		if ($dupe_check->count() > 0) {
+			return Response::json([
+				'status' => Config::get('constants.ERR_GENERAL'),
+				'message' => Lang::get('messages.dupe_token')
+			], 400);
+		}
+
+		$user->push_token = $push_token;
+		$user->token_type = $token_type;
+		$user->update();
+		return Response::json([
+			'status' => Config::get('constants.SUCCESS')
+		], 200);
+	}
 }

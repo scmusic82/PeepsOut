@@ -35,5 +35,9 @@ return array(
     // Users
     'missing_email'             => 'Email address is missing',
     'invalid_email'             => 'Email address is invalid',
-    'dupe_email'                => 'Email address already in use'
+    'dupe_email'                => 'Email address already in use',
+    'missing_token'             => 'Push notification token is missing',
+    'missing_token_type'        => 'Push notification token type is missing',
+    'invalid_token_type'        => 'Invalid token type.',
+    'dupe_token'                => 'Push notification token already exists',
 );
