@@ -107,4 +107,46 @@ class UsersController extends \BaseController {
 			'status' => Config::get('constants.SUCCESS')
 		], 200);
 	}
+
+	public function send_push()
+	{
+		$request = Request::instance();
+		$data = (array)json_decode($request->getContent(), true);
+
+		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
+		$user = $token->user;
+
+		if (!isset($data['message']) || (isset($data['message']) && trim($data['message']) == '')) {
+			return Response::json([
+				'status' => Config::get('constants.ERR_GENERAL'),
+				'message' => Lang::get('messages.missing_message')
+			], 400);
+		}
+
+		if ($user->push_token == '' || $user->token_type == '') {
+			return Response::json([
+				'status' => Config::get('constants.ERR_GENERAL'),
+				'message' => Lang::get('messages.device_not_registered')
+			], 400);
+		}
+
+		$app_type = 'peepsout.';
+		if ($user->token_type == 'apns') {
+			$app_type .= 'ios';
+		} else {
+			$app_type .= 'android';
+		}
+		if (Config::get('app.debug')) {
+			$app_type .= '.dev';
+		} else {
+			$app_type .= '.prd';
+		}
+
+		PushNotification::app($app_type)
+			->to($user->push_token)
+			->send($data['message']);
+		return Response::json([
+			'status' => Config::get('constants.SUCCESS')
+		], 200);
+	}
 }
