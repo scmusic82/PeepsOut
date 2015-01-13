@@ -199,19 +199,19 @@ class Venue extends Eloquent {
 				$special['description'] = Utils::restoreTags($v['description']);
 				$special['day'] = $v['day'];
 				if (trim($v['from']) != '' && trim($v['until']) != '' && $v['from'] == $v['until']) {
-					$special['starts'] = 'Only on ' . date("d F Y", strtotime($v['from'])) . '.';
+					$special['starts'] = 'Only on ' . date("F jS, Y", strtotime($v['from'])) . '.';
 					$special['ends'] = '';
 				} else if (trim($v['from']) != '' && trim($v['until']) != '') {
                     // Timed
                     if ($today > strtotime($v['from'] . ' 00:00:00') && $today < strtotime($v['until'] . ' 23:59:59')) {
-						$special['starts'] = 'From '. date("d F Y", strtotime($v['from']));
-						$special['ends'] = 'until ' . date("d F Y", strtotime($v['until'])) . '.';
+						$special['starts'] = 'From '. date("F jS, Y", strtotime($v['from']));
+						$special['ends'] = 'until ' . date("F jS, Y", strtotime($v['until'])) . '.';
                     }
                 } else if (trim($v['from']) != '' && trim($v['forever']) == '1') {
                     // Never finishes
                     //if ($today > strtotime($v['from'] . ' 00:00:00')) {
                         // Is happening
-						$special['starts'] = 'Starting on ' . date("d F Y", strtotime($v['from'])) . '.';
+						$special['starts'] = 'Starting on ' . date("F jS, Y", strtotime($v['from'])) . '.';
 						$special['ends'] = '';
                     //}
                 } else {
