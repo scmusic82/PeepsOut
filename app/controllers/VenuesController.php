@@ -133,6 +133,19 @@ class VenuesController extends \BaseController {
 		$schedule = (array)json_decode($venue->feed_schedule, true);
 		foreach($schedule as $k => $v) {
 			if (isset($v['days']) && count($v['days']) > 0) {
+				if (is_array($v['hours']) && count($v['hours']) > 0) {
+					foreach($v['hours'] as $kh => $vh) {
+						$h = explode(':', $vh);
+						if (intval($h[0]) <= 11) {
+							$v['hours'][$kh] = intval($h[0]) . (intval($h[1])  > 0 ? ':' . $h[1] : '') . ' AM';
+						} else if (intval($h[0]) == 12) {
+							$v['hours'][$kh] = $h[0] . (intval($h[1])  > 0 ? ':' . $h[1] : '') . ' PM';
+						} else if (intval($h[0]) > 12) {
+							$new_h = $h[0] - 12;
+							$v['hours'][$kh] = $new_h . (intval($h[1]) > 0 ? ':' . $h[1] : '') . ' PM';
+						}
+					}
+				}
 				$feed_schedule[] = ['days' => $v['days'], 'hours' => $v['hours']];
 			}
 		}
