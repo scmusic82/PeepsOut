@@ -19,6 +19,14 @@ class CitiesController extends \BaseController {
 			foreach($existing_cities->get() as $key => $val) {
 				$city = [];
 				$city['name'] = $val->name;
+				if ($val->center_lat != '' && $val->center_lon != '') {
+					$city['default'] = [
+						'lat' => $val->center_lat,
+						'lon' => $val->center_lon
+					];
+				} else {
+					$city['default'] = [];
+				}
 				$city['neighbourhoods'] = [];
 				if ($val->neighbourhoods->count() > 0) {
 					foreach($val->neighbourhoods as $neighbourhood) {
