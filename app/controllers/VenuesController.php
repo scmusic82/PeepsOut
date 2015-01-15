@@ -61,10 +61,14 @@ class VenuesController extends \BaseController {
 					}
 				}
 
+				$city = City::where('id', '=', $venue->city)->first();
+				$city_name = $city->name;
+
 				$all_venues[$venue_key] = [
 					'venue_id' 		=> $venue->venue_id,
 					'name' 			=> $venue->name,
 					'categories'	=> $venue_categories,
+					'city'			=> $city_name,
 					'feed' 			=> $venue->feed,
 					'favourite' 	=> (isset($user_favourites[$venue->venue_id]) ? 1 : 0),
 					'streaming'		=> $is_streaming,
@@ -268,10 +272,14 @@ class VenuesController extends \BaseController {
 						}
 					}
 
+					$city = City::where('id', '=', $venue->city)->first();
+					$city_name = $city->name;
+
 					$all_venues[$venue_key] = [
 						'venue_id' 		=> $venue->venue_id,
 						'name' 			=> $venue->name,
 						'categories'	=> $venue_categories,
+						'city'			=> $city_name,
 						'feed' 			=> $venue->feed, 
 						'favourite' 	=> (isset($user_favourites[$venue->venue_id]) ? 1 : 0), 
 						'streaming'		=> $is_streaming,
