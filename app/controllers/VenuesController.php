@@ -47,7 +47,7 @@ class VenuesController extends \BaseController {
 			$venues = $existing_venues->get();
 			foreach($venues as $venue) {
 
-				list($is_streaming, $next_stream_in) = Venue::checkStream($venue->feed_schedule, $venue->feed_timezone, $today_day, $user_gmt_time);
+				list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $today_day, $user_gmt_time);
 				list($distance, $venue_key) = Venue::getDistance($lat, $lon, $venue->location_lat, $venue->location_lon, $start_count, $low_count);
 				
 				$distances[$venue_key] = $distance;
@@ -127,7 +127,7 @@ class VenuesController extends \BaseController {
 		}
 		$venue = $existing_venue->first();
 
-		list($is_streaming, $next_stream_in) = Venue::checkStream($venue->feed_schedule, $venue->feed_timezone, $today_day, $user_gmt_time);
+		list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $today_day, $user_gmt_time);
 		list($distance, $venue_key) = Venue::getDistance($lat, $lon, $venue->location_lat, $venue->location_lon);
 
 		$venue_categories = Venue::getCategories($venue->category_id);
@@ -257,7 +257,7 @@ class VenuesController extends \BaseController {
                     }
                 }
                 if ($add_venue) {
-					list($is_streaming, $next_stream_in) = Venue::checkStream($venue->feed_schedule, $venue->feed_timezone, $today_day, $user_gmt_time);
+					list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $today_day, $user_gmt_time);
 					list($distance, $venue_key) = Venue::getDistance($lat, $lon, $venue->location_lat, $venue->location_lon, $start_count, $low_count);
 					$distances[$venue_key] = $distance;
 					$venue_categories = Venue::getCategories($venue->category_id);
@@ -348,7 +348,7 @@ class VenuesController extends \BaseController {
 				$found_venues = $existing_venues->get();
 				foreach($found_venues as $venue) {
 
-					list($is_streaming, $next_stream_in) = Venue::checkStream($venue->feed_schedule, $venue->feed_timezone, $today_day, $user_gmt_time);
+					list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $today_day, $user_gmt_time);
 					list($distance, $venue_key) = Venue::getDistance($lat, $lon, $venue->location_lat, $venue->location_lon, $start_count, $low_count);
 
 					$distances[$venue_key] = $distance;

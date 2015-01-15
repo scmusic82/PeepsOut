@@ -11,12 +11,12 @@ class Venue extends Eloquent {
 	/**
 	* Calculate the distance from the user to the venue based on two sets of coordinates
 	*
-	* @param 	lat1 		float 	user's latitude
-	* @param 	lon1		float 	user's longitude
-	* @param 	lat2		float 	venue's latitude
-	* @param 	lon2 		float 	venue's longitude
-	* @param 	start_count	int 	key driver for the venues array
-	* @param 	low_count 	int 	key driver for the venues with no coordinates, used to place them at the bottom
+	* @param 	float 	user's latitude
+	* @param 	float 	user's longitude
+	* @param 	float 	venue's latitude
+	* @param 	float 	venue's longitude
+	* @param 	int 	key driver for the venues array
+	* @param 	int 	key driver for the venues with no coordinates, used to place them at the bottom
 	*
 	* @return 	array
 	*/
@@ -65,14 +65,16 @@ class Venue extends Eloquent {
 	/**
 	* Return an array containing if the venue is streaming or not and when it should start next
 	*
-	* @param 	string 		JSON formatted string extracted from the venue entry 
+	* @param 	object 		The venue object
 	* @param 	int 		The timezone of the venue
 	* @param 	string 		The user's literal day name
 	* @param 	int 		The user's date and time reported to GTM
 	* @return 	array
 	*/
-	public static function checkStream($venue_feed_schedule, $venue_feed_timezone, $today_day, $user_gmt_time)
+	public static function checkStream($venue, $today_day, $user_gmt_time)
 	{
+		$venue_feed_schedule = $venue->feed_schedule;
+		$venue_feed_timezone = $venue->feed_timezone;
 		$schedule = (array)json_decode($venue_feed_schedule, true);
 		$is_streaming = 0;
 		$next_stream_in = '';
@@ -184,6 +186,14 @@ class Venue extends Eloquent {
 				}
 			}
 		}
+
+//		if (isset($venue->feed) && $venue->feed != '' && preg_match('/http/', $venue->feed) && $is_streaming == 1) {
+//			$contents = file_get_contents($venue->feed);
+//			if (!preg_match('/RESOLUTION/', $contents)) {
+//				$is_streaming = 0;
+//				$next_stream_in = '';
+//			}
+//		}
 
 		return [$is_streaming, $next_stream_in];
 	}
