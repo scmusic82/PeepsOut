@@ -42,8 +42,8 @@ class ContentsController extends \BaseController {
 			'status' => Config::get('constants.SUCCESS'),
 			'content' => [
 				'title' => $content->title,
-				'content' => $content->content,
-				'images' => $content->images
+				'content' => strip_tags($content->content),
+				'image' => $content->image
 			]
 		], 200);
 	}

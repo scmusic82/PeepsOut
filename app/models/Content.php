@@ -6,7 +6,7 @@ class Content extends Eloquent {
      *
      * @var string
      */
-    protected $table = 'content';
+    protected $table = 'contents';
 
     public function setImagesAttribute($value = [])
     {

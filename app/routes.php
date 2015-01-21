@@ -57,6 +57,6 @@ Route::group(['prefix' => 'v1'], function() {
     Route::get('cities',                ['before' => 'auth', 'uses' => 'CitiesController@index']);
 
     // Contents
-    Route::get('contents',              ['before' => 'auth', 'uses' => 'ContentsController@index']);
-    Route::get('contents/{content_id}', ['before' => 'auth', 'uses' => 'ContentsController@details']);
+    Route::get('content',               ['before' => 'auth', 'uses' => 'ContentsController@index']);
+    Route::get('content/{id}',          ['before' => 'auth', 'uses' => 'ContentsController@details']);
 });

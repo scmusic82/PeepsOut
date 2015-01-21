@@ -74,6 +74,7 @@ class UsersController extends \BaseController {
 		}
 
 		$push_token = Utils::formPrep($data['token']);
+		$push_token = str_replace(['&lt;', '&gt;'], ['<', '>'], $push_token);
 		$tt = Utils::formPrep($data['type']);
 		switch($tt) {
 			case "ios":
