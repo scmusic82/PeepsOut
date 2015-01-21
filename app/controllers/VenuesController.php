@@ -11,6 +11,7 @@ class VenuesController extends \BaseController {
 	{
 		$kw = trim(Utils::formPrep(Input::get('kw', '')));
 		$search_category = trim(Utils::formPrep(Input::get('category', '')));
+		$search_city = trim(Utils::formPrep(Input::get('city', '')));
 
 		$timestamp = Input::get('timestamp', strtotime('now'));
 		$timezone = Input::get('timezone', '-18000');
@@ -21,7 +22,7 @@ class VenuesController extends \BaseController {
 		$low_count = 99999999999;
 		$start_count = 0;
 
-		$kw_condition = $category_condition = "";
+		$kw_condition = $category_condition = $city_condition = "";
 
 		$today_day = date('l', $timestamp);
 		$user_gmt_time = intval($timestamp) - intval($timezone);
@@ -35,7 +36,15 @@ class VenuesController extends \BaseController {
 			$category_condition = " AND category_id LIKE '%" . $search_category . "%'";
 		}
 
-		$existing_venues = Venue::whereRaw("id > 0 AND soft_delete = 0" . $kw_condition . $category_condition);
+		if ($search_city != '') {
+			$existing_cities = City::where('name', 'like', '%' . $search_city . '%');
+			if ($existing_cities->count() > 0) {
+				$found_city = $existing_cities->first();
+				$city_condition = " AND city = " . $found_city->id;
+			}
+		}
+
+		$existing_venues = Venue::whereRaw("id > 0 AND soft_delete = 0" . $kw_condition . $category_condition . $city_condition);
 		$all_venues = $returned_venues = $distances = [];
 		if ($existing_venues->count() > 0) {
 			
@@ -243,7 +252,7 @@ class VenuesController extends \BaseController {
 			->where('specials', '!=', '[]');
 		if ($existing_venues->count() > 0) {
 
-			$categories = Category::getCategories();
+			//$categories = Category::getCategories();
 			$user_favourites = Favourite::getFavourites($user->user_id);
 			$found_venues = $existing_venues->get();
 			
@@ -344,7 +353,7 @@ class VenuesController extends \BaseController {
 			$existing_venues = Venue::where('soft_delete', '=', '0')
 				->whereIn('venue_id', $all_favourites);
 			if ($existing_venues->count() > 0) {
-				$categories = Category::getCategories();
+				//$categories = Category::getCategories();
 				$found_venues = $existing_venues->get();
 				foreach($found_venues as $venue) {
 
@@ -388,8 +397,8 @@ class VenuesController extends \BaseController {
 
 	public function showSuggestions()
 	{
-		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
-		$user = $token->user;
+		//$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
+		//$user = $token->user;
 
 		$kw = Input::get('kw', '');
 		$suggestions = [];
