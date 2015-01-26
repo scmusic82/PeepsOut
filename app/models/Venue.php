@@ -103,6 +103,11 @@ class Venue extends Eloquent {
 				}
 
 				// Check if it is passed midnight
+				/*
+				 * a: 26.01.2015 17:00    1700
+				 * b:
+				 * c: 27.01.2015 03:00		300
+				 */
 				if ($sched_frames[$day_val]['a'] > $sched_frames[$day_val]['c']) {
 					$sched_frames[$day_val]['c'] += 86400;
 					$sched_frames[$day_val]['d'] = 86400;

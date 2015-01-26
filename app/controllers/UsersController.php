@@ -109,6 +109,11 @@ class UsersController extends \BaseController {
 		], 200);
 	}
 
+	/**
+	 * Send a push notification
+	 *
+	 * @return \Illuminate\Http\JsonResponse
+	 */
 	public function send_push()
 	{
 		$request = Request::instance();
@@ -146,6 +151,18 @@ class UsersController extends \BaseController {
 		PushNotification::app($app_type)
 			->to($user->push_token)
 			->send($data['message']);
+		return Response::json([
+			'status' => Config::get('constants.SUCCESS')
+		], 200);
+	}
+
+	public function reset_pushes()
+	{
+		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
+		$user = $token->user;
+
+		$user->pushes = 0;
+		$user->update();
 		return Response::json([
 			'status' => Config::get('constants.SUCCESS')
 		], 200);
