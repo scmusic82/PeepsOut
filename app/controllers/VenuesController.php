@@ -56,9 +56,9 @@ class VenuesController extends \BaseController {
 			$venues = $existing_venues->get();
 			foreach($venues as $venue) {
 
-				list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $today_day, $user_gmt_time);
+				list($is_streaming, $next_stream_in, $sched_frames) = Venue::checkStream($venue, $today_day, $user_gmt_time);
 				list($distance, $venue_key) = Venue::getDistance($lat, $lon, $venue->location_lat, $venue->location_lon, $start_count, $low_count);
-				
+
 				$distances[$venue_key] = $distance;
 				$venue_categories = Venue::getCategories($venue->category_id);
 
@@ -86,7 +86,8 @@ class VenuesController extends \BaseController {
 						'lat' 		=> $venue->location_lat, 
 						'lon' 		=> $venue->location_lon,
 						'distance'	=> number_format($distance, 2, '.', '')
-					]
+					],
+					'sched_frames' => $sched_frames
 				];
 				$venue->impressions++;
 				$venue->update();

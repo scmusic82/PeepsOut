@@ -90,8 +90,10 @@ class Venue extends Eloquent {
 		$sched_frames[$today_day]['b'] = $user_gmt_time;
 		foreach($schedule as $sched_key => $sched_val) {
 			foreach($sched_val['days'] as $day_key => $day_val) {
+				$check_hours = [];
 				foreach($sched_val['hours'] as $hour_key => $hour_val) {
 					if ($hour_val == '00:00') { $hour_val = '23:59'; }
+
 					if ($hour_key == 0) {
 						$sched_frames[$day_val]['a'] = intval(strtotime(date('Y-m-d ' . $hour_val . ':00'))) - intval($venue_timezone);
 					}
@@ -99,7 +101,14 @@ class Venue extends Eloquent {
 						$sched_frames[$day_val]['c'] = intval(strtotime(date('Y-m-d ' . $hour_val . ':00'))) - intval($venue_timezone);
 					}
 				}
-				@asort($sched_frames[$day_val]);
+
+				// Check if it is passed midnight
+				if ($sched_frames[$day_val]['a'] > $sched_frames[$day_val]['c']) {
+					$sched_frames[$day_val]['c'] += 86400;
+					$sched_frames[$day_val]['d'] = 86400;
+				}
+
+				//@asort($sched_frames[$day_val]);
 			}
 		}
 		
@@ -195,7 +204,7 @@ class Venue extends Eloquent {
 //			}
 //		}
 
-		return [$is_streaming, $next_stream_in];
+		return [$is_streaming, $next_stream_in, $sched_frames];
 	}
 
     public static function getVenueSpecials($specials = [])
