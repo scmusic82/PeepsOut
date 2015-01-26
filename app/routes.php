@@ -28,6 +28,22 @@ Route::get('/', function() {
     return View::make('index.index'); 
 });
 
+Route::post('pndqueue/send', function(){
+    return Queue::marshal();
+});
+
+class PNDSender {
+
+    public function fire($job, $data)
+    {
+        $message = PushNotification::Message($data['message'], ['badge' => $data['badge'], 'anchor' => $data['anchor']]);
+        PushNotification::app('po.ios.dev')
+            ->to($data['token'])
+            ->send($message);
+    }
+
+}
+
 Route::group(['prefix' => 'v1'], function() {
 
     // Authentification 
@@ -50,6 +66,8 @@ Route::group(['prefix' => 'v1'], function() {
     Route::post('users/token',          ['before' => 'auth', 'uses' => 'UsersController@register_token']);
     Route::post('users/push',           ['before' => 'auth', 'uses' => 'UsersController@send_push']);
     Route::get('users/push/reset',      ['before' => 'auth', 'uses' => 'UsersController@reset_pushes']);
+    Route::get('users/location',        ['before' => 'auth', 'uses' => 'UsersController@update_location']);
+    Route::get('users/pushed/{anchor_id}',['before' => 'auth', 'uses' => 'UsersController@get_pushed']);
 
     // FAQs
     Route::get('faqs',                  ['before' => 'auth', 'uses' => 'FaqController@index']);

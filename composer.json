@@ -6,7 +6,8 @@
 	"type": "project",
 	"require": {
 		"laravel/framework": "4.2.*",
-	  	"davibennun/laravel-push-notification": "dev-master"
+	  	"davibennun/laravel-push-notification": "dev-master",
+	  	"iron-io/iron_mq": "1.5.2"
 	},
 	"autoload": {
 		"classmap": [
