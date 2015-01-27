@@ -197,8 +197,8 @@ class UsersController extends \BaseController {
 			$user_gmt_time = intval($timestamp) - intval($timezone);
 			$all_venues = $returned_venues = $distances = [];
 
-
-			$feet_fence = Config::get('constants.FENCE_RANGE');
+			$fence_setting = Setting::where('key', '=', 'fence')->first();
+			$feet_fence = $fence_setting->value;
 
 			$user_favourites = Favourite::getFavourites($user->user_id);
 
@@ -285,9 +285,9 @@ class UsersController extends \BaseController {
 				$new_anchor->save();
 			}
 
-			$text_message = 'You are near a few Streaming, PeepsOut Venues with Specials.';
+			$text_message = 'You are near a few streaming PeepsOut venues with specials.';
 			if (count($returned_venues) == 1) {
-				$text_message = 'You are near to one of our Streaming, PeepsOut Venue with Specials.';
+				$text_message = 'You are near one of our streaming PeepsOut venue with specials.';
 			}
 
 			$badge = $user->pushes;
