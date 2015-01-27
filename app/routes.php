@@ -78,4 +78,6 @@ Route::group(['prefix' => 'v1'], function() {
     // Contents
     Route::get('content',               ['before' => 'auth', 'uses' => 'ContentsController@index']);
     Route::get('content/{id}',          ['before' => 'auth', 'uses' => 'ContentsController@details']);
+
+    Route::get('settings',              ['before' => 'auth', 'uses' => 'SettingsController@index']);
 });
