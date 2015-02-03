@@ -203,7 +203,7 @@ class UsersController extends \BaseController {
 			$user_favourites = Favourite::getFavourites($user->user_id);
 
 			// Clean older pushed venues
-			$old_pushed_venues = PushedVenues::where('created_at', '<', strtotime("-8 hours"));
+			$old_pushed_venues = PushedAnchors::where('created_at', '<', strtotime("-8 hours"));
 			if ($old_pushed_venues->count() > 0) {
 				foreach ($old_pushed_venues->get() as $old_venue) {
 					$old_venue->delete();
@@ -212,10 +212,13 @@ class UsersController extends \BaseController {
 
 			// Get active pushed venues for user
 			$pushed_venues = [];
-			$existing_pushed_venues = PushedVenues::where('device_id', '=', $device_id);
+			$existing_pushed_venues = PushedAnchors::where('device_id', '=', $device_id);
 			if ($existing_pushed_venues->count() > 0) {
 				foreach ($existing_pushed_venues->get() as $pushed_venue) {
-					$pushed_venues[$pushed_venue->venue_id] = 1;
+					$found_venues = json_decode($pushed_venue['response_data'], true);
+					foreach($found_venues as $k => $v) {
+						$pushed_venues[$v['venue_id']] = 1;
+					}
 				}
 			}
 
@@ -283,18 +286,18 @@ class UsersController extends \BaseController {
 				$new_anchor->device_id = $device_id;
 				$new_anchor->response_data = json_encode($returned_venues);
 				$new_anchor->save();
-			}
 
-			$text_message = 'You are near a few streaming PeepsOut venues with specials.';
-			if (count($returned_venues) == 1) {
-				$text_message = 'You are near one of our streaming PeepsOut venue with specials.';
-			}
+				$text_message = 'You are near a few streaming PeepsOut venues with specials.';
+				if (count($returned_venues) == 1) {
+					$text_message = 'You are near one of our streaming PeepsOut venue with specials.';
+				}
 
-			$badge = $user->pushes;
-			$badge++;
-			Queue::push('PNDSender', ['token' => $user->push_token, 'message' => $text_message, 'badge' => $badge, 'anchor' => $poll_anchor]);
-			$user->pushes = $badge;
-			$user->update();
+				$badge = $user->pushes;
+				$badge++;
+				Queue::push('PNDSender', ['token' => $user->push_token, 'message' => $text_message, 'badge' => $badge, 'anchor' => $poll_anchor]);
+				$user->pushes = $badge;
+				$user->update();
+			}
 
 			Metric::registerCall('users/location', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
 			return Response::json(['status' => Config::get('constants.SUCCESS')], 200);

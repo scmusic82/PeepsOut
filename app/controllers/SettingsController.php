@@ -12,6 +12,7 @@ class SettingsController extends \BaseController {
 		$response = [
 			'status' => Config::get('constants.SUCCESS')
 		];
+
 		$existing_settings = Setting::where('id', '>', 0);
 		if ($existing_settings->count() > 0) {
 			foreach($existing_settings->get() as $setting) {
@@ -26,5 +27,4 @@ class SettingsController extends \BaseController {
 		Metric::registerCall('settings', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
 		return Response::json($response, 200);
 	}
-
 }

@@ -6,6 +6,6 @@ class PushedAnchors extends Eloquent {
      *
      * @var string
      */
-    protected $table = 'push_anchors';
+    protected $table = 'pushed_anchors';
 
 }
