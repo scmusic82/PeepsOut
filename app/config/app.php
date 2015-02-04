@@ -26,7 +26,7 @@ return array(
     |
     */
 
-    'url' => 'http://poapi.atmdev.com',
+    'url' => 'http://api.peepsout.com',
 
     /*
     |--------------------------------------------------------------------------
@@ -39,7 +39,7 @@ return array(
     |
     */
 
-    'timezone' => 'Europe/Bucharest',
+    'timezone' => 'America/New_York',
 
     /*
     |--------------------------------------------------------------------------
