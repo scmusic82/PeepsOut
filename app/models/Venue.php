@@ -62,6 +62,16 @@ class Venue extends Eloquent {
 		return $venue_categories;
 	}
 
+	public static function grabStreamData($url)
+	{
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		$data = curl_exec($ch);
+		curl_close($ch);
+		return $data;
+	}
+
 	/**
 	* Return an array containing if the venue is streaming or not and when it should start next
 	*
@@ -201,13 +211,14 @@ class Venue extends Eloquent {
 			}
 		}
 
-//		if (isset($venue->feed) && $venue->feed != '' && preg_match('/http/', $venue->feed) && $is_streaming == 1) {
-//			$contents = file_get_contents($venue->feed);
-//			if (!preg_match('/RESOLUTION/', $contents)) {
-//				$is_streaming = 0;
-//				$next_stream_in = '';
-//			}
-//		}
+		if (isset($venue->feed) && $venue->feed != '' && preg_match('/http/', $venue->feed) && $is_streaming == 1) {
+			//$contents = file_get_contents($venue->feed);
+			$contents = self::grabStreamData($venue->feed);
+			if (!preg_match('/RESOLUTION/', $contents)) {
+				$is_streaming = 2;
+				$next_stream_in = '';
+			}
+		}
 
 		return [$is_streaming, $next_stream_in, $sched_frames];
 	}
