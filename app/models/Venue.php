@@ -216,7 +216,7 @@ class Venue extends Eloquent {
 			$contents = self::grabStreamData($venue->feed);
 			if (!preg_match('/RESOLUTION/', $contents)) {
 				$is_streaming = 2;
-				$next_stream_in = '';
+				$next_stream_in = 'LIVE';
 			}
 		}
 
