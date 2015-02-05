@@ -95,10 +95,14 @@ class UsersController extends \BaseController {
 
 		$dupe_check = User::where('id', '!=', $user->id)->where('push_token', '=', $push_token)->where('token_type', '=', $token_type);
 		if ($dupe_check->count() > 0) {
-			return Response::json([
-				'status' => Config::get('constants.ERR_GENERAL'),
-				'message' => Lang::get('messages.dupe_token')
-			], 400);
+			foreach($dupe_check->get() as $dupe) {
+				$dupe->push_token = null;
+				$dupe->update();
+			}
+//			return Response::json([
+//				'status' => Config::get('constants.ERR_GENERAL'),
+//				'message' => Lang::get('messages.dupe_token')
+//			], 400);
 		}
 
 		$user->push_token = $push_token;
