@@ -67,8 +67,15 @@ class Venue extends Eloquent {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_VERBOSE, true);
+		$verbose = fopen('php://temp', 'rw+');
+		curl_setopt($ch, CURLOPT_STDERR, $verbose);
+
 		$data = curl_exec($ch);
 		curl_close($ch);
+		if ($data === FALSE) {
+			dd("cUrl error (#%d): %s<br>\n", curl_errno($ch),  htmlspecialchars(curl_error($ch)));
+		}
 		return $data;
 	}
 
@@ -212,8 +219,6 @@ class Venue extends Eloquent {
 		}
 
 		if (isset($venue->feed) && $venue->feed != '' && preg_match('/http/', $venue->feed) && $is_streaming == 1) {
-			//$contents = file_get_contents($venue->feed);
-			dd($venue->feed);
 			$contents = self::grabStreamData($venue->feed);
 			if ($contents !== false && !preg_match('/RESOLUTION/', $contents)) {
 				$is_streaming = 2;
