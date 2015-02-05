@@ -74,7 +74,7 @@ class Venue extends Eloquent {
 		$data = curl_exec($ch);
 		curl_close($ch);
 		if ($data === FALSE) {
-			dd("cUrl error (#%d): %s<br>\n", curl_errno($ch),  htmlspecialchars(curl_error($ch)));
+			dd(curl_error($ch));
 		}
 		return $data;
 	}
