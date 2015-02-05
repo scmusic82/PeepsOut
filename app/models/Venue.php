@@ -72,10 +72,11 @@ class Venue extends Eloquent {
 		curl_setopt($ch, CURLOPT_STDERR, $verbose);
 
 		$data = curl_exec($ch);
-		curl_close($ch);
 		if ($data === FALSE) {
 			dd(curl_error($ch));
 		}
+		curl_close($ch);
+
 		return $data;
 	}
 
