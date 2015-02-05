@@ -69,15 +69,20 @@ class Venue extends Eloquent {
 		if (isset($components['port'])) {
 			$url_port = $components['port'];
 		}
-		$url = str_replace(':' . $url_port, '', $url);
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch, CURLOPT_PORT, $url_port);
-		$data = curl_exec($ch);
-		curl_close($ch);
-		dd($data);
-		return $data;
+		$url = str_replace(':' . $url_port, '', $url)
+//		$ch = curl_init();
+//		curl_setopt($ch, CURLOPT_URL, $url);
+//		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+//		curl_setopt($ch, CURLOPT_PORT, $url_port);
+//		$data = curl_exec($ch);
+//		curl_close($ch);
+//		dd($data);
+//		return $data;
+		$client = new GuzzleHttp\Client();
+		$request = $client->createRequest('GET', $url);
+		$request->setPort($url_port);
+		$response = $client->send($request);
+		dd($response->getBody());
 	}
 
 	/**
