@@ -62,6 +62,12 @@ class Venue extends Eloquent {
 		return $venue_categories;
 	}
 
+    /**
+     * Get live stream data
+     *
+     * @param $url
+     * @return mixed
+     */
 	public static function grabStreamData($url)
 	{
 		$url_port = 80;
@@ -77,11 +83,6 @@ class Venue extends Eloquent {
 		$data = curl_exec($ch);
 		curl_close($ch);
 		return $data;
-//		$client = new GuzzleHttp\Client();
-//		$request = $client->createRequest('GET', $url);
-//		$request->setPort($url_port);
-//		$response = $client->send($request);
-//		dd($response->getBody());
 	}
 
 	/**
