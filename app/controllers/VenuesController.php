@@ -70,29 +70,30 @@ class VenuesController extends \BaseController {
 					}
 				}
 
-				$city = City::where('id', '=', $venue->city)->first();
-				$city_name = $city->name;
+                if ($venue->city > 0) {
+                    $city = City::where('id', '=', $venue->city)->first();
+                    $city_name = $city->name;
 
-				$all_venues[$venue_key] = [
-					'venue_id' 		=> $venue->venue_id,
-					'name' 			=> $venue->name,
-					'categories'	=> $venue_categories,
-					'city'			=> $city_name,
-					'feed' 			=> $venue->feed,
-					'favourite' 	=> (isset($user_favourites[$venue->venue_id]) ? 1 : 0),
-					'streaming'		=> $is_streaming,
-					'stream_in'		=> $next_stream_in,
-					'location' => [
-						'lat' 		=> $venue->location_lat, 
-						'lon' 		=> $venue->location_lon,
-						'distance'	=> number_format($distance, 2, '.', '')
-					],
-					'sched_frames' => $sched_frames
-				];
-				$venue->impressions++;
-				$venue->update();
-				$start_count++;
-
+                    $all_venues[$venue_key] = [
+                        'venue_id' => $venue->venue_id,
+                        'name' => $venue->name,
+                        'categories' => $venue_categories,
+                        'city' => $city_name,
+                        'feed' => $venue->feed,
+                        'favourite' => (isset($user_favourites[$venue->venue_id]) ? 1 : 0),
+                        'streaming' => $is_streaming,
+                        'stream_in' => $next_stream_in,
+                        'location' => [
+                            'lat' => $venue->location_lat,
+                            'lon' => $venue->location_lon,
+                            'distance' => number_format($distance, 2, '.', '')
+                        ],
+                        'sched_frames' => $sched_frames
+                    ];
+                    $venue->impressions++;
+                    $venue->update();
+                    $start_count++;
+                }
 			}
 		}
 		@asort($distances);
