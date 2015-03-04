@@ -207,7 +207,7 @@ class UsersController extends \BaseController {
 			$user_favourites = Favourite::getFavourites($user->user_id);
 
 			// Clean older pushed venues
-			$old_pushed_venues = PushedAnchors::where('created_at', '<', strtotime("-8 hours"));
+			$old_pushed_venues = PushedAnchors::where('created_at', '<', date("Y-m-d H:i:s", strtotime("-8 hours")));
 			if ($old_pushed_venues->count() > 0) {
 				foreach ($old_pushed_venues->get() as $old_venue) {
 					$old_venue->delete();
@@ -339,31 +339,3 @@ class UsersController extends \BaseController {
 		], 400);
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
