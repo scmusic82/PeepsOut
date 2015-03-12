@@ -192,7 +192,7 @@ class VenuesController extends \BaseController {
 				"distance"		=> number_format($distance, 2, '.', '')
 			],
 			"details" 			=> [
-				"description" 	=> strip_tags($venue->description),
+				"description" 	=> strip_tags(Utils::restoreTags($venue->description)),
 				"geo_address"	=> $venue->geo_address,
 				"web_address" 	=> $venue->web_address,
 				"email_address" => $venue->email_address,
