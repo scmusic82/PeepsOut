@@ -82,7 +82,7 @@ class Utils {
     }
 
     public static function restoreTags($str = '') {
-        $search = array('&lt;','&gt;','&quot;', '&amp;', '&#039;', '&nbsp;', '&mdash;', '&hellip;', "&rsquo;", '&mdash;', '&ldquo;', '&rdquo;', '&not;', '&lsquo;');
+        $search = array('&lt;','&gt;','&quot;', '&amp;', '&#039;', '&nbsp;', '&mdash;', '&hellip;', "&rsquo;", '&ndash;', '&ldquo;', '&rdquo;', '&not;', '&lsquo;');
         $replace = array('<','>','"', '&', "'", ' ', '-', '', "'", '-', '"', '"', '', "'");
         $str = str_replace($search, $replace, $str);
         return $str;
