@@ -99,10 +99,6 @@ class UsersController extends \BaseController {
 				$dupe->push_token = null;
 				$dupe->update();
 			}
-//			return Response::json([
-//				'status' => Config::get('constants.ERR_GENERAL'),
-//				'message' => Lang::get('messages.dupe_token')
-//			], 400);
 		}
 
 		$user->push_token = $push_token;
@@ -188,12 +184,8 @@ class UsersController extends \BaseController {
 			$timestamp = Input::get('timestamp', strtotime('now'));
 			$lat = Input::get('lat', 40.758895);
 			$lon = Input::get('lon', -73.985131);
-			if ($lat == '') {
-				$lat = 40.758895;
-			}
-			if ($lon == '') {
-				$lon = -73.985131;
-			}
+			if ($lat == '') { $lat = 40.758895; }
+			if ($lon == '') { $lon = -73.985131; }
 			$low_count = 99999999999;
 			$start_count = 0;
 
