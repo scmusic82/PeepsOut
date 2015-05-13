@@ -17,8 +17,9 @@ class VenuesController extends \BaseController {
 		$timezone = Input::get('timezone', '-18000');
 		$lat = Input::get('lat', 40.758895);
         $lon = Input::get('lon', -73.985131);
-        if ($lat == '') { $lat = 40.758895; }
-        if ($lon == '') { $lon = -73.985131; }
+        $alpha = false;
+        if ($lat == '') { $lat = 40.758895; $alpha = true; }
+        if ($lon == '') { $lon = -73.985131; $alpha = true; }
 		$low_count = 99999999999;
 		$start_count = 0;
 
@@ -52,23 +53,31 @@ class VenuesController extends \BaseController {
 			$user = $token->user;
 
 			$user_favourites = Favourite::getFavourites($user->user_id);
+            if ($alpha) {
+                $venues = $existing_venues->orderBy("name")->get();
+            } else {
+                $venues = $existing_venues->get();
+            }
+            $distance = 0;
+            foreach ($venues as $venue) {
+                list($is_streaming, $next_stream_in, $sched_frames) = Venue::checkStream($venue, $today_day, $user_gmt_time);
+                if ($alpha) {
+                    $distance++;
+                    $venue_key = $distance;
+                } else {
+                    list($distance, $venue_key) = Venue::getDistance($lat, $lon, $venue->location_lat, $venue->location_lon, $start_count, $low_count);
+                }
 
-			$venues = $existing_venues->get();
-			foreach($venues as $venue) {
+                $distances[$venue_key] = $distance;
+                $venue_categories = Venue::getCategories($venue->category_id);
 
-				list($is_streaming, $next_stream_in, $sched_frames) = Venue::checkStream($venue, $today_day, $user_gmt_time);
-				list($distance, $venue_key) = Venue::getDistance($lat, $lon, $venue->location_lat, $venue->location_lon, $start_count, $low_count);
-
-				$distances[$venue_key] = $distance;
-				$venue_categories = Venue::getCategories($venue->category_id);
-
-				$feed_schedule = [];
-				$schedule = (array)json_decode($venue->feed_schedule, true);
-				foreach($schedule as $k => $v) {
-					if (isset($v['days']) && count($v['days']) > 0) {
-						$feed_schedule[] = ['days' => $v['days'], 'hours' => $v['hours']];
-					}
-				}
+                $feed_schedule = [];
+                $schedule = (array)json_decode($venue->feed_schedule, true);
+                foreach ($schedule as $k => $v) {
+                    if (isset($v['days']) && count($v['days']) > 0) {
+                        $feed_schedule[] = ['days' => $v['days'], 'hours' => $v['hours']];
+                    }
+                }
 
                 if ($venue->city > 0) {
                     $city = City::where('id', '=', $venue->city)->first();
@@ -86,7 +95,7 @@ class VenuesController extends \BaseController {
                         'location' => [
                             'lat' => $venue->location_lat,
                             'lon' => $venue->location_lon,
-                            'distance' => number_format($distance, 2, '.', '')
+                            'distance' => ($alpha ? "" : number_format($distance, 2, '.', ''))
                         ],
                         'sched_frames' => $sched_frames
                     ];
@@ -94,10 +103,11 @@ class VenuesController extends \BaseController {
                     $venue->update();
                     $start_count++;
                 }
-			}
-		}
-		@asort($distances);
-		foreach($distances as $key => $distance) {
+            }
+        }
+
+        @asort($distances);
+        foreach($distances as $key => $distance) {
 			$returned_venues[] = $all_venues[$key];
 		}
 		$response = [
@@ -241,8 +251,9 @@ class VenuesController extends \BaseController {
 		$timezone = Input::get('timezone', '-18000');
 		$lat = Input::get('lat', 40.758895);
 		$lon = Input::get('lon', -73.985131);
-        if ($lat == '') { $lat = 40.758895; }
-        if ($lon == '') { $lon = -73.985131; }
+        $alpha = false;
+        if ($lat == '') { $lat = 40.758895; $alpha = true;}
+        if ($lon == '') { $lon = -73.985131; $alpha = true; }
 		$low_count = 99999999999;
 		$start_count = 0;
 
@@ -254,10 +265,13 @@ class VenuesController extends \BaseController {
 			->where('specials', '!=', '[]');
 		if ($existing_venues->count() > 0) {
 
-			//$categories = Category::getCategories();
 			$user_favourites = Favourite::getFavourites($user->user_id);
-			$found_venues = $existing_venues->get();
-			
+            if ($alpha) {
+                $found_venues = $existing_venues->orderBy("name")->get();
+            } else {
+                $found_venues = $existing_venues->get();
+            }
+			$distance = 0;
 			foreach($found_venues as $venue) {
 				$specials = json_decode($venue->specials, true);
                 foreach($specials as $special) {
@@ -269,7 +283,12 @@ class VenuesController extends \BaseController {
                 }
                 if ($add_venue) {
 					list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $today_day, $user_gmt_time);
-					list($distance, $venue_key) = Venue::getDistance($lat, $lon, $venue->location_lat, $venue->location_lon, $start_count, $low_count);
+                    if ($alpha) {
+                        $distance++;
+                        $venue_key = $distance;
+                    } else {
+                        list($distance, $venue_key) = Venue::getDistance($lat, $lon, $venue->location_lat, $venue->location_lon, $start_count, $low_count);
+                    }
 					$distances[$venue_key] = $distance;
 					$venue_categories = Venue::getCategories($venue->category_id);
 
@@ -299,7 +318,7 @@ class VenuesController extends \BaseController {
                             'location' => [
                                 'lat' => $venue->location_lat,
                                 'lon' => $venue->location_lon,
-                                'distance' => number_format($distance, 2, '.', '')
+                                'distance' => $alpha ? "" : number_format($distance, 2, '.', '')
                             ],
                             'specials' => $venue_specials,
                             'specials_order' => $specials_order
@@ -336,8 +355,9 @@ class VenuesController extends \BaseController {
 		$timezone = Input::get('timezone', '-18000');
 		$lat = Input::get('lat', 40.758895);
         $lon = Input::get('lon', -73.985131);
-        if ($lat == '') { $lat = 40.758895; }
-        if ($lon == '') { $lon = -73.985131; }
+        $alpha = false;
+        if ($lat == '') { $lat = 40.758895; $alpha = true; }
+        if ($lon == '') { $lon = -73.985131; $alpha = true; }
 		$low_count = 99999999999;
 		$start_count = 0;
 
@@ -356,13 +376,21 @@ class VenuesController extends \BaseController {
 		if (count($all_favourites) > 0) {
 			$existing_venues = Venue::where('soft_delete', '=', '0')
 				->whereIn('venue_id', $all_favourites);
+            if ($alpha) {
+                $existing_venues->orderBy("name", "asc");
+            }
 			if ($existing_venues->count() > 0) {
-				//$categories = Category::getCategories();
 				$found_venues = $existing_venues->get();
+                $distance = 0;
 				foreach($found_venues as $venue) {
 
 					list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $today_day, $user_gmt_time);
-					list($distance, $venue_key) = Venue::getDistance($lat, $lon, $venue->location_lat, $venue->location_lon, $start_count, $low_count);
+                    if ($alpha) {
+                        $distance++;
+                        $venue_key = $distance;
+                    } else {
+                        list($distance, $venue_key) = Venue::getDistance($lat, $lon, $venue->location_lat, $venue->location_lon, $start_count, $low_count);
+                    }
 
 					$distances[$venue_key] = $distance;
 					$venue_categories = Venue::getCategories($venue->category_id);
@@ -371,14 +399,14 @@ class VenuesController extends \BaseController {
 						'venue_id' 		=> $venue->venue_id,
 						'name' 			=> $venue->name,
 						'categories'	=> $venue_categories,
-						'feed' 			=> $venue->feed, 
+						'feed' 			=> $venue->feed,
 						'distance'		=> $venue->distance,
 						'streaming'		=> $is_streaming,
 						'stream_in'		=> $next_stream_in,
 						'location' => [
-							'lat' 		=> $venue->location_lat, 
+							'lat' 		=> $venue->location_lat,
 							'lon' 		=> $venue->location_lon,
-							'distance'	=> number_format($distance, 2, '.', '')
+							'distance'	=> $alpha ? "" : number_format($distance, 2, '.', '')
 						]
 					];
 					$venue->impressions++;
