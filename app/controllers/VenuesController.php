@@ -270,7 +270,7 @@ class VenuesController extends \BaseController {
 
 			$user_favourites = Favourite::getFavourites($user->user_id);
             $found_venues = $existing_venues->get();
-            
+
 			$distance = 0;
 			foreach($found_venues as $venue) {
 				$specials = json_decode($venue->specials, true);
