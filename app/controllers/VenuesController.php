@@ -429,9 +429,6 @@ class VenuesController extends \BaseController {
 
 	public function showSuggestions()
 	{
-		//$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
-		//$user = $token->user;
-
 		$kw = Input::get('kw', '');
 		$suggestions = [];
 
