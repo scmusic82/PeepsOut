@@ -18,8 +18,8 @@ class VenuesController extends \BaseController {
 		$lat = Input::get('lat', 40.758895);
         $lon = Input::get('lon', -73.985131);
         $alpha = false;
-        if ($lat == '' || $lat == 40.758895) { $lat = 40.758895; $alpha = true; }
-        if ($lon == '' || $lon == -73.985131) { $lon = -73.985131; $alpha = true; }
+        if ($lat == '' || $lat == 40.758895 || $lat == 0) { $lat = 40.758895; $alpha = true; }
+        if ($lon == '' || $lon == -73.985131 || $lon == 0) { $lon = -73.985131; $alpha = true; }
 		$low_count = 99999999999;
 		$start_count = 0;
 
@@ -255,8 +255,8 @@ class VenuesController extends \BaseController {
 		$lat = Input::get('lat', 40.758895);
 		$lon = Input::get('lon', -73.985131);
         $alpha = false;
-        if ($lat == '' || $lat == 40.758895) { $lat = 40.758895; $alpha = true; }
-        if ($lon == '' || $lon == -73.985131) { $lon = -73.985131; $alpha = true; }
+        if ($lat == '' || $lat == 40.758895 || $lat == 0) { $lat = 40.758895; $alpha = true; }
+        if ($lon == '' || $lon == -73.985131 || $lon == 0) { $lon = -73.985131; $alpha = true; }
 		$low_count = 99999999999;
 		$start_count = 0;
 
@@ -361,8 +361,8 @@ class VenuesController extends \BaseController {
 		$lat = Input::get('lat', 40.758895);
         $lon = Input::get('lon', -73.985131);
         $alpha = false;
-        if ($lat == '' || $lat == 40.758895) { $lat = 40.758895; $alpha = true; }
-        if ($lon == '' || $lon == -73.985131) { $lon = -73.985131; $alpha = true; }
+        if ($lat == '' || $lat == 40.758895 || $lat == 0) { $lat = 40.758895; $alpha = true; }
+        if ($lon == '' || $lon == -73.985131 || $lon == 0) { $lon = -73.985131; $alpha = true; }
 		$low_count = 99999999999;
 		$start_count = 0;
 
