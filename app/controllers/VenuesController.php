@@ -263,14 +263,14 @@ class VenuesController extends \BaseController {
 		$existing_venues = Venue::where('soft_delete', '=', '0')
 			->where('specials', '!=', '')
 			->where('specials', '!=', '[]');
+        if ($alpha) {
+            $existing_venues->orderBy("name")->get();
+        }
 		if ($existing_venues->count() > 0) {
 
 			$user_favourites = Favourite::getFavourites($user->user_id);
-            if ($alpha) {
-                $found_venues = $existing_venues->orderBy("name")->get();
-            } else {
-                $found_venues = $existing_venues->get();
-            }
+            $found_venues = $existing_venues->get();
+            
 			$distance = 0;
 			foreach($found_venues as $venue) {
 				$specials = json_decode($venue->specials, true);
