@@ -9,7 +9,6 @@ class AuthController extends BaseController {
 	 */
 	public function index()
 	{
-        
 		$request = Request::instance();
         $content = $request->getContent();
 		if ($content != '') {
