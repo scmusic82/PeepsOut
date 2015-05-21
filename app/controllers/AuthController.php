@@ -14,7 +14,7 @@ class AuthController extends BaseController {
 		if ($content != '') {
 			$request_data = (array)json_decode($content, true);
 			if (isset($request_data['device_id'])) {
-				Metric::registerCall('auth', Request::getClientIp(), 1, '');
+				Metric::registerCall('auth', Request::header("x-forwarded-for"), 1, '');
 				$device_id = Utils::purify($request_data['device_id']);
 
 				$user_exists = User::where('device_id', '=', $device_id);
@@ -59,14 +59,14 @@ class AuthController extends BaseController {
 					return Response::json($return_data, 200);
 				}
 			} else {
-				Metric::registerCall('auth', Request::getClientIp(), Config::get('constants.ERR_GENERAL'), Lang::get('messages.missing_device_id'));
+				Metric::registerCall('auth', Request::header("x-forwarded-for"), Config::get('constants.ERR_GENERAL'), Lang::get('messages.missing_device_id'));
 				return Response::json([
 					'status' => Config::get('constants.ERR_GENERAL'), 
 					'message' => Lang::get('messages.missing_device_id')
 					], 401);
 			}
 		} else {
-			Metric::registerCall('auth', Request::getClientIp(), Config::get('constants.ERR_GENERAL'), Lang::get('messages.missing_call_params'));
+			Metric::registerCall('auth', Request::header("x-forwarded-for"), Config::get('constants.ERR_GENERAL'), Lang::get('messages.missing_call_params'));
 			return Response::json([
 				'status' => Config::get('constants.ERR_GENERAL'), 
 				'message' => Lang::get('messages.missing_call_params')
@@ -82,8 +82,8 @@ class AuthController extends BaseController {
 	 */
 	public function update($device_id)
 	{
-		$auth_token = Tkn::renewToken(Request::header('Authorization'), $device_id);
-		Metric::registerCall('auth/renew', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
+		$auth_token = Tkn::renewToken(Request::header('x-authorization'), $device_id);
+		Metric::registerCall('auth/renew', Request::header("x-forwarded-for"), Config::get('constants.SUCCESS'), '');
 		return Response::json([
 			'status' => Config::get('constants.SUCCESS'), 
 			'auth_token' => $auth_token

@@ -24,7 +24,7 @@ class FaqController extends \BaseController {
 			}
 		}
 
-		Metric::registerCall('faq', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
+		Metric::registerCall('faq', Request::header("x-forwarded-for"), Config::get('constants.SUCCESS'), '');
 		return Response::json($response, 200);
 	}
 

@@ -35,19 +35,7 @@ App::after(function($request, $response)
 
 Route::filter('auth', function()
 {
-	// if (Auth::guest())
-	// {
-	// 	if (Request::ajax())
-	// 	{
-	// 		return Response::make('Unauthorized', 401);
-	// 	}
-	// 	else
-	// 	{
-	// 		return Redirect::guest('login');
-	// 	}
-	// }
-    dd("auth: " . Request::header('x-authorization'));
-	if (!Tkn::checkToken(Request::header('Authorization'))) {
+	if (!Tkn::checkToken(Request::header('x-authorization'))) {
 		return Response::json(['status' => Config::get('constants.ERR_AUTH'), 'message' => Lang::get('messages.auth_error')], 401);
 	}
 });

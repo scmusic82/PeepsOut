@@ -26,7 +26,7 @@ class CategoriesController extends \BaseController {
 				$category->update();
 			}
 		}
-		Metric::registerCall('categories', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
+		Metric::registerCall('categories', Request::header("x-forwarded-for"), Config::get('constants.SUCCESS'), '');
 		return Response::json([
 			'status' => Config::get('constants.SUCCESS'), 
 			'categories' => $categories

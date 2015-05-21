@@ -24,7 +24,7 @@ class SettingsController extends \BaseController {
 			}
 		}
 
-		Metric::registerCall('settings', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
+		Metric::registerCall('settings', Request::header("x-forwarded-for"), Config::get('constants.SUCCESS'), '');
 		return Response::json($response, 200);
 	}
 }

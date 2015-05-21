@@ -11,7 +11,7 @@ class UsersController extends \BaseController {
 		$request = Request::instance();
 		$data = (array)json_decode($request->getContent(), true);
 
-		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
+		$token = Token::where('auth_token', '=', Request::header('x-authorization'))->first();
 		$user = $token->user;
 
 		if (!isset($data['email_address']) || (isset($data['email_address']) && trim($data['email_address']) == '')) {
@@ -56,7 +56,7 @@ class UsersController extends \BaseController {
 		$request = Request::instance();
 		$data = (array)json_decode($request->getContent(), true);
 
-		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
+		$token = Token::where('auth_token', '=', Request::header('x-authorization'))->first();
 		$user = $token->user;
 
 		if (!isset($data['token']) || (isset($data['token']) && trim($data['token']) == '')) {
@@ -119,7 +119,7 @@ class UsersController extends \BaseController {
 		$request = Request::instance();
 		$data = (array)json_decode($request->getContent(), true);
 
-		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
+		$token = Token::where('auth_token', '=', Request::header('x-authorization'))->first();
 		$user = $token->user;
 
 		if (!isset($data['message']) || (isset($data['message']) && trim($data['message']) == '')) {
@@ -163,7 +163,7 @@ class UsersController extends \BaseController {
 	 */
 	public function reset_pushes()
 	{
-		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
+		$token = Token::where('auth_token', '=', Request::header('x-authorization'))->first();
 		$user = $token->user;
 
 		$user->pushes = 0;
@@ -175,7 +175,7 @@ class UsersController extends \BaseController {
 
 	public function update_location()
 	{
-		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
+		$token = Token::where('auth_token', '=', Request::header('x-authorization'))->first();
 		$device_id = $token->device_id;
 		$user = $token->user;
 		if ($user->push_token != '') {
@@ -295,11 +295,11 @@ class UsersController extends \BaseController {
 				$user->update();
 			}
 
-			Metric::registerCall('users/location', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
+			Metric::registerCall('users/location', Request::header("x-forwarded-for"), Config::get('constants.SUCCESS'), '');
 			return Response::json(['status' => Config::get('constants.SUCCESS')], 200);
 		}
 
-		Metric::registerCall('users/location', Request::getClientIp(), Config::get('constants.ERR_GENERAL'), '');
+		Metric::registerCall('users/location', Request::header("x-forwarded-for"), Config::get('constants.ERR_GENERAL'), '');
 		return Response::json([
 			'status' => Config::get('constants.ERR_GENERAL'),
 			'message' => Lang::get('messages.device_not_registered')
@@ -308,7 +308,7 @@ class UsersController extends \BaseController {
 
 	public function get_pushed($anchor_id)
 	{
-		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
+		$token = Token::where('auth_token', '=', Request::header('x-authorization'))->first();
 		$device_id = $token->device_id;
 		$user = $token->user;
 
@@ -321,10 +321,10 @@ class UsersController extends \BaseController {
 				'total_results' => count($venues),
 				'venues' => $venues
 			];
-			Metric::registerCall('users/pushed/' . $anchor_id, Request::getClientIp(), Config::get('constants.SUCCESS'), '');
+			Metric::registerCall('users/pushed/' . $anchor_id, Request::header("x-forwarded-for"), Config::get('constants.SUCCESS'), '');
 			return Response::json($response, 200);
 		}
-		Metric::registerCall('users/pushed/' . $anchor_id, Request::getClientIp(), Config::get('constants.ERR_GENERAL'), '');
+		Metric::registerCall('users/pushed/' . $anchor_id, Request::header("x-forwarded-for"), Config::get('constants.ERR_GENERAL'), '');
 		return Response::json([
 			'status' => Config::get('constants.ERR_GENERAL'),
 			'message' => Lang::get('messages.anchor_not_found')

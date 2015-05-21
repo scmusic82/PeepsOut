@@ -49,7 +49,7 @@ class VenuesController extends \BaseController {
 		$all_venues = $returned_venues = $distances = [];
 		if ($existing_venues->count() > 0) {
 			
-			$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
+			$token = Token::where('auth_token', '=', Request::header('x-authorization'))->first();
 			$user = $token->user;
 
 			$user_favourites = Favourite::getFavourites($user->user_id);
@@ -115,8 +115,8 @@ class VenuesController extends \BaseController {
 			'total_results' => count($returned_venues),
 			'venues' => $returned_venues
 		];
-		Metric::registerCall('venues', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
-        Event::fire('log.call', [Request::path(), Request::getClientIp(), Request::all(), $response, 200]);
+		Metric::registerCall('venues', Request::header("x-forwarded-for"), Config::get('constants.SUCCESS'), '');
+        Event::fire('log.call', [Request::path(), Request::header("x-forwarded-for"), Request::all(), $response, 200]);
 		return Response::json($response, 200);
 	}
 
@@ -128,7 +128,7 @@ class VenuesController extends \BaseController {
 	 */
 	public function show($venue_id)
 	{
-		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
+		$token = Token::where('auth_token', '=', Request::header('x-authorization'))->first();
 		$user = $token->user;
 
 		$lat = Input::get('lat', 40.758895);
@@ -218,14 +218,14 @@ class VenuesController extends \BaseController {
 		$venue->visits++;
 		$venue->update();
 
-		Metric::registerCall('venues/' . $venue_id, Request::getClientIp(), Config::get('constants.SUCCESS'), '');
-        Event::fire('log.call', [Request::path(), Request::getClientIp(), Request::all(), $response, 200]);
+		Metric::registerCall('venues/' . $venue_id, Request::header("x-forwarded-for"), Config::get('constants.SUCCESS'), '');
+        Event::fire('log.call', [Request::path(), Request::header("x-forwarded-for"), Request::all(), $response, 200]);
 		return Response::json($response, 200);
 	}
 
 	public function markFavourite($venue_id)
 	{
-		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
+		$token = Token::where('auth_token', '=', Request::header('x-authorization'))->first();
 		$user = $token->user;
 		$existing_favourites = Favourite::where('venue_id', '=', $venue_id)->where('user_id', '=', $user->user_id);
 		if ($existing_favourites->count() == 0) {
@@ -237,15 +237,15 @@ class VenuesController extends \BaseController {
 			$favourite = $existing_favourites->first();
 			$favourite->delete();
 		}
-		Metric::registerCall('venues/' . $venue_id . '/fav', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
-        Event::fire('log.call', [Request::path(), Request::getClientIp(), Request::all(), $response, 200]);
+		Metric::registerCall('venues/' . $venue_id . '/fav', Request::header("x-forwarded-for"), Config::get('constants.SUCCESS'), '');
+        Event::fire('log.call', [Request::path(), Request::header("x-forwarded-for"), Request::all(), $response, 200]);
 		return Response::make('', 200);
 	}
 
 
 	public function listSpecials()
 	{
-		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
+		$token = Token::where('auth_token', '=', Request::header('x-authorization'))->first();
 		$user = $token->user;
 
 		$returned_venues = $all_venues = $distances = [];
@@ -344,14 +344,14 @@ class VenuesController extends \BaseController {
             'total_results' => count($returned_venues),
             'venues' => $returned_venues
         ];
-		Metric::registerCall('venues/specials', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
-        Event::fire('log.call', [Request::path(), Request::getClientIp(), Request::all(), $response, 200]);
+		Metric::registerCall('venues/specials', Request::header("x-forwarded-for"), Config::get('constants.SUCCESS'), '');
+        Event::fire('log.call', [Request::path(), Request::header("x-forwarded-for"), Request::all(), $response, 200]);
 		return Response::json($response, 200);
 	}
 
 	public function listFavourites()
 	{
-		$token = Token::where('auth_token', '=', Request::header('Authorization'))->first();
+		$token = Token::where('auth_token', '=', Request::header('x-authorization'))->first();
 		$user = $token->user;
 
 		$returned_venues = $all_favourites = $all_venues = $distances = [];
@@ -429,8 +429,8 @@ class VenuesController extends \BaseController {
             'total_results' => count($returned_venues),
             'venues' => $returned_venues
         ];
-		Metric::registerCall('venues/favourites', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
-        Event::fire('log.call', [Request::path(), Request::getClientIp(), Request::all(), $response, 200]);
+		Metric::registerCall('venues/favourites', Request::header("x-forwarded-for"), Config::get('constants.SUCCESS'), '');
+        Event::fire('log.call', [Request::path(), Request::header("x-forwarded-for"), Request::all(), $response, 200]);
 		return Response::json($response, 200);
 	}
 
@@ -455,8 +455,8 @@ class VenuesController extends \BaseController {
             'status' => Config::get('constants.SUCCESS'),
             'suggestions' => $suggestions
         ];
-		Metric::registerCall('venues/suggestions', Request::getClientIp(), Config::get('constants.SUCCESS'), '');
-        Event::fire('log.call', [Request::path(), Request::getClientIp(), Request::all(), $response, 200]);
+		Metric::registerCall('venues/suggestions', Request::header("x-forwarded-for"), Config::get('constants.SUCCESS'), '');
+        Event::fire('log.call', [Request::path(), Request::header("x-forwarded-for"), Request::all(), $response, 200]);
 		return Response::json($response, 200);
 	}
 } 
