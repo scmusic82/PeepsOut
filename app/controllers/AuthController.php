@@ -9,8 +9,9 @@ class AuthController extends BaseController {
 	 */
 	public function index()
 	{
+        
 		$request = Request::instance();
-		$content = $request->getContent();
+        $content = $request->getContent();
 		if ($content != '') {
 			$request_data = (array)json_decode($content, true);
 			if (isset($request_data['device_id'])) {
