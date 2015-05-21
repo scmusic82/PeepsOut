@@ -28,4 +28,8 @@ return array(
 		'secret' => '',
 	),
 
+    'rollbar' => array(
+        'access_token' => '34ba0a7712004b008a38ff90615034e4',
+        'level' => 'debug'
+    ),
 );

@@ -124,6 +124,7 @@ return array(
         'RB\Helpers\UtilsServiceProvider',
         'RB\Helpers\TknServiceProvider',
         'Davibennun\LaravelPushNotification\LaravelPushNotificationServiceProvider',
+        'Jenssegers\Rollbar\RollbarServiceProvider',
     ),
 
     /*
