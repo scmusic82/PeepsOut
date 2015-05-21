@@ -46,7 +46,7 @@ Route::filter('auth', function()
 	// 		return Redirect::guest('login');
 	// 	}
 	// }
-    dd("auth: " . json_encode(Request::all()));
+    dd("auth: " . json_encode(Request::header()));
 	if (!Tkn::checkToken(Request::header('Authorization'))) {
 		return Response::json(['status' => Config::get('constants.ERR_AUTH'), 'message' => Lang::get('messages.auth_error')], 401);
 	}
