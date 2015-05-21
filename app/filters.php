@@ -35,7 +35,6 @@ App::after(function($request, $response)
 
 Route::filter('auth', function()
 {
-    dd(Request::header());
 	if (!Tkn::checkToken(Request::header('x-authorization'))) {
 		return Response::json(['status' => Config::get('constants.ERR_AUTH'), 'message' => Lang::get('messages.auth_error')], 401);
 	}
