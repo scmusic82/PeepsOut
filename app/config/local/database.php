@@ -25,7 +25,7 @@ return array(
 			'host'      => 'localhost',
 			'database'  => 'peepsout',
 			'username'  => 'peepsout',
-			'password'  => '3FmA6s2l39',
+			'password'  => 'ZWESj7pI7TDgk091753dY7F54fHV248W',
 			'charset'   => 'utf8',
 			'collation' => 'utf8_unicode_ci',
 			'prefix'    => '',

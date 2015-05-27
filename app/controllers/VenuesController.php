@@ -15,6 +15,9 @@ class VenuesController extends \BaseController {
 
 		$timestamp = Input::get('timestamp', strtotime('now'));
 		$timezone = Input::get('timezone', '-18000');
+        $today_day = date('l', $timestamp);
+        $user_gmt_time = intval($timestamp) - intval($timezone);
+
 		$lat = Input::get('lat', 40.758895);
         $lon = Input::get('lon', -73.985131);
         $alpha = false;
@@ -24,9 +27,6 @@ class VenuesController extends \BaseController {
 		$start_count = 0;
 
 		$kw_condition = $category_condition = $city_condition = "";
-
-		$today_day = date('l', $timestamp);
-		$user_gmt_time = intval($timestamp) - intval($timezone);
 
 		if ($kw != '') {
 			$kw = Utils::stopWords($kw);
@@ -60,7 +60,8 @@ class VenuesController extends \BaseController {
             }
             $distance = 0;
             foreach ($venues as $venue) {
-                list($is_streaming, $next_stream_in, $sched_frames) = Venue::checkStream($venue, $today_day, $user_gmt_time);
+                //list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $today_day, $user_gmt_time);
+                list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $timestamp, $timezone);
                 if ($alpha) {
                     $distance++;
                     $venue_key = $distance;
@@ -96,8 +97,7 @@ class VenuesController extends \BaseController {
                             'lat' => $venue->location_lat,
                             'lon' => $venue->location_lon,
                             'distance' => ($alpha ? "" : number_format($distance, 2, '.', ''))
-                        ],
-                        'sched_frames' => $sched_frames
+                        ]
                     ];
                     $venue->impressions++;
                     $venue->update();
@@ -149,7 +149,8 @@ class VenuesController extends \BaseController {
 		}
 		$venue = $existing_venue->first();
 
-		list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $today_day, $user_gmt_time);
+		//list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $today_day, $user_gmt_time);
+        list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $timestamp, $timezone);
 		list($distance, $venue_key) = Venue::getDistance($lat, $lon, $venue->location_lat, $venue->location_lon);
 
 		$venue_categories = Venue::getCategories($venue->category_id);
@@ -238,7 +239,7 @@ class VenuesController extends \BaseController {
 			$favourite->delete();
 		}
 		Metric::registerCall('venues/' . $venue_id . '/fav', Request::header("x-forwarded-for"), Config::get('constants.SUCCESS'), '');
-        Event::fire('log.call', [Request::path(), Request::header("x-forwarded-for"), Request::all(), $response, 200]);
+        Event::fire('log.call', [Request::path(), Request::header("x-forwarded-for"), Request::all(), [], 200]);
 		return Response::make('', 200);
 	}
 
@@ -285,7 +286,8 @@ class VenuesController extends \BaseController {
                     }
                 }
                 if ($add_venue) {
-					list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $today_day, $user_gmt_time);
+					//list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $today_day, $user_gmt_time);
+                    list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $timestamp, $timezone);
                     if ($alpha) {
                         $distance++;
                         $venue_key = $distance;
@@ -389,7 +391,8 @@ class VenuesController extends \BaseController {
                 $distance = 0;
 				foreach($found_venues as $venue) {
 
-					list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $today_day, $user_gmt_time);
+					//list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $today_day, $user_gmt_time);
+                    list($is_streaming, $next_stream_in) = Venue::checkStream($venue, $timestamp, $timezone);
                     if ($alpha) {
                         $distance++;
                         $venue_key = $distance;
